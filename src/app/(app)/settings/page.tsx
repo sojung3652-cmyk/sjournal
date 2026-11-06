@@ -5,16 +5,17 @@ import { Button } from "@/components/ui/button";
 import { AI_DAILY_LIMIT } from "@/lib/ai-limits";
 import { dayRangeUtc } from "@/lib/dates";
 import { getUserContext } from "@/lib/user";
+import { PageContainer } from "@/components/app/page-container";
 import { ProfileForm } from "./profile-form";
 
 export default function SettingsPage() {
   return (
-    <>
+    <PageContainer>
       <PageHeader title="설정" />
       <Suspense fallback={<p className="text-sm text-muted-foreground">불러오는 중</p>}>
         <SettingsContent />
       </Suspense>
-    </>
+    </PageContainer>
   );
 }
 

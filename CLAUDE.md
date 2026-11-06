@@ -75,6 +75,13 @@ src/types/database.ts           GENERATED Supabase types — never edit by hand
 - Reorder via RPC `reorder_categories(ids uuid[])` (security invoker, RLS applies).
 - Keep session reads out of layouts' top level — push them into a component behind a boundary.
 
+### Board / study items
+- Status changes go through `moveItem` (board/actions.ts). `started_at`, `completed_at`, `planned_date` are set
+  by the `study_items_status_timestamps` trigger — do not set them from app code.
+- Column order: `position` asc (smaller = top). New/moved items use `topPosition()`.
+- dnd-kit: `@dnd-kit/core` 6.3.1. `DndContext` needs a fixed `id` (SSR hydration). Every drag action also has a
+  menu/button fallback (mobile, keyboard).
+
 ### AI (later phases)
 - Prompts in `src/lib/prompts/`. Parse model JSON with tolerant safeParse + `max_tokens` headroom.
 - Haiku-class for classification/short summaries, Sonnet-class for journal/guide/scan.

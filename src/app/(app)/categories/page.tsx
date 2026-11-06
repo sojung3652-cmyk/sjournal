@@ -2,16 +2,17 @@ import { Suspense } from "react";
 import { PageHeader } from "@/components/app/page-header";
 import { dayInTimezone, formatDayShort } from "@/lib/dates";
 import { getUserContext } from "@/lib/user";
+import { PageContainer } from "@/components/app/page-container";
 import { CategoryManager, type CategoryStats } from "./category-manager";
 
 export default function CategoriesPage() {
   return (
-    <>
+    <PageContainer>
       <PageHeader title="카테고리" description="과목별 색상은 모든 화면에서 똑같이 쓰입니다." />
       <Suspense fallback={<p className="text-sm text-muted-foreground">불러오는 중</p>}>
         <CategoryList />
       </Suspense>
-    </>
+    </PageContainer>
   );
 }
 
