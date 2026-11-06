@@ -198,6 +198,7 @@ export type Database = {
           created_at: string
           daily_log_id: string | null
           id: string
+          search_vector: unknown
           source_type: string
           study_item_id: string | null
           title: string | null
@@ -211,6 +212,7 @@ export type Database = {
           created_at?: string
           daily_log_id?: string | null
           id?: string
+          search_vector?: unknown
           source_type?: string
           study_item_id?: string | null
           title?: string | null
@@ -224,6 +226,7 @@ export type Database = {
           created_at?: string
           daily_log_id?: string | null
           id?: string
+          search_vector?: unknown
           source_type?: string
           study_item_id?: string | null
           title?: string | null
@@ -386,6 +389,20 @@ export type Database = {
         Returns: { category_ids: string[]; day: string }[]
       }
       reorder_categories: { Args: { ids: string[] }; Returns: undefined }
+      search_notes: {
+        Args: { max_results?: number; q: string }
+        Returns: {
+          category_id: string
+          content: string
+          created_at: string
+          id: string
+          log_date: string
+          rank: number
+          source_type: string
+          tags: string[]
+          title: string
+        }[]
+      }
     }
     Enums: {
       study_status: "backlog" | "today" | "in_progress" | "done"

@@ -92,6 +92,11 @@ src/types/database.ts           GENERATED Supabase types — never edit by hand
 - Client components using `usePathname()` in a layout need a Suspense boundary (see `(app)/layout.tsx`).
 - Next keeps the previous route mounted but hidden; in Playwright tests use `:visible` selectors.
 
+### Calendar & search
+- Calendar dots come from `activity_days`; max 3 category dots per day, neutral dot when no category.
+- Search = RPC `search_notes(q)`: every word must match title/body/tags as a substring (pg_trgm-indexed ILIKE,
+  LIKE chars escaped) and `simple` FTS only adds ranking. Korean has no FTS segmentation — keep the ILIKE path.
+
 ### AI (later phases)
 - Prompts in `src/lib/prompts/`. Parse model JSON with tolerant safeParse + `max_tokens` headroom.
 - Haiku-class for classification/short summaries, Sonnet-class for journal/guide/scan.
