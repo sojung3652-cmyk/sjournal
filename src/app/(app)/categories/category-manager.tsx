@@ -16,8 +16,15 @@ import {
 } from "./actions";
 
 type Category = { id: string; name: string; color: string; sort_order: number };
+export type CategoryStats = { notes: number; done: number; total: number; lastStudied: string | null };
 
-export function CategoryManager({ categories }: { categories: Category[] }) {
+export function CategoryManager({
+  categories,
+  stats = {},
+}: {
+  categories: Category[];
+  stats?: Record<string, CategoryStats>;
+}) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -44,11 +51,6 @@ export function CategoryManager({ categories }: { categories: Category[] }) {
 
   return (
     <section className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h2 className="text-lg font-medium">카테고리</h2>
-        <p className="text-sm text-muted-foreground">과목별 색상은 모든 화면에서 똑같이 쓰입니다.</p>
-      </div>
-
       {categories.length === 0 ? (
         <p className="text-sm text-muted-foreground">카테고리가 없습니다. 아래에서 추가해 주세요.</p>
       ) : (
@@ -64,8 +66,9 @@ export function CategoryManager({ categories }: { categories: Category[] }) {
                 />
               ) : (
                 <div className="flex items-center gap-3">
-                  <div className="min-w-0 flex-1">
+                  <div className="flex min-w-0 flex-1 flex-col items-start gap-1.5">
                     <CategoryBadge name={category.name} color={category.color} />
+                    <StatsLine stats={stats[category.id]} />
                   </div>
 
                   {confirmingId === category.id ? (
@@ -218,5 +221,17 @@ function CategoryForm({
         )}
       </div>
     </form>
+  );
+}
+
+function StatsLine({ stats }: { stats?: CategoryStats }) {
+  if (!stats) return null;
+  const progress = stats.total ? Math.round((stats.done / stats.total) * 100) : 0;
+  return (
+    <p className="text-xs text-muted-foreground">
+      노트 {stats.notes} · 완료 {stats.done}/{stats.total}
+      {stats.total > 0 && ` (${progress}%)`}
+      {stats.lastStudied && ` · 최근 ${stats.lastStudied}`}
+    </p>
   );
 }
