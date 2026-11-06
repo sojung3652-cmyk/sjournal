@@ -4,6 +4,7 @@ import { useActionState, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Paperclip } from "lucide-react";
 import { attachFile, createFileNote, discardNote, quickAddText, type NoteResult } from "@/app/(app)/notes/actions";
+import { ClassifySuggestionPanel } from "@/components/ai/classify-suggestion";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { NOTE_CONTENT_MAX } from "@/lib/notes";
@@ -12,7 +13,8 @@ const MAX_BYTES = 20 * 1024 * 1024; // matches the Storage bucket limit
 const ACCEPT = "image/png,image/jpeg,image/webp,image/gif,image/heic,application/pdf";
 
 /** One input for text, links, images and PDFs (paste or pick a file). */
-export function QuickAdd() {
+export function QuickAdd({ categories, aiEnabled }: { categories: { id: string; name: string }[]; aiEnabled: boolean }) {
+  const [dismissed, setDismissed] = useState<string | null>(null);
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -57,6 +59,7 @@ export function QuickAdd() {
   }
 
   return (
+    <div className="flex flex-col gap-3">
     <form ref={formRef} action={action} className="flex flex-col gap-2">
       <label htmlFor="quick-add" className="sr-only">
         빠른 추가
@@ -110,5 +113,17 @@ export function QuickAdd() {
       {fileMsg?.error && <p className="text-sm text-destructive">{fileMsg.error}</p>}
       {fileMsg?.ok && <p className="text-sm text-muted-foreground">{fileMsg.ok}</p>}
     </form>
+    {/* Auto classification right after a text/link note is saved (outside the form: its buttons must not submit). */}
+    {state.ok && state.noteId && state.noteId !== dismissed && (
+      <ClassifySuggestionPanel
+        key={state.noteId}
+        noteId={state.noteId}
+        categories={categories}
+        enabled={aiEnabled}
+        auto
+        onDone={() => setDismissed(state.noteId ?? null)}
+      />
+    )}
+    </div>
   );
 }

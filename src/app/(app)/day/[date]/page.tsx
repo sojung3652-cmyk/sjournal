@@ -4,11 +4,14 @@ import { Suspense } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { PageContainer } from "@/components/app/page-container";
 import { Section } from "@/components/app/section";
+import { GuideView, JournalView } from "@/components/ai/day-ai";
 import { ItemChecklist } from "@/components/day/item-checklist";
 import { NoteList } from "@/components/day/note-list";
 import { buttonVariants } from "@/components/ui/button";
 import { getDayData } from "@/lib/data/day";
 import { addDays, formatDayLong, isValidDay } from "@/lib/dates";
+import { guideSchema } from "@/lib/prompts/guide";
+import { journalSchema } from "@/lib/prompts/journal";
 import { getUserContext } from "@/lib/user";
 
 export default function DayPage({ params }: PageProps<"/day/[date]">) {
@@ -26,6 +29,8 @@ async function Day({ params }: { params: PageProps<"/day/[date]">["params"] }) {
   if (!isValidDay(date)) notFound();
   const { supabase, timezone, today } = await getUserContext();
   const { categories, log, planned, completed, notes } = await getDayData(supabase, date, timezone);
+  const journal = journalSchema.safeParse(log?.ai_journal);
+  const guide = guideSchema.safeParse(log?.ai_guide);
   const nav = buttonVariants({ variant: "ghost", size: "icon-sm" });
 
   return (
@@ -64,11 +69,14 @@ async function Day({ params }: { params: PageProps<"/day/[date]">["params"] }) {
       </Section>
 
       <Section title="저널">
-        {log?.reflection ? (
-          <p className="text-sm">&ldquo;{log.reflection}&rdquo;</p>
-        ) : (
-          <p className="text-sm text-muted-foreground">이 날 저널이 없습니다.</p>
-        )}
+        <div className="flex flex-col gap-3">
+          {log?.reflection && <p className="text-sm">&ldquo;{log.reflection}&rdquo;</p>}
+          {journal.success && <JournalView journal={journal.data} />}
+          {guide.success && <GuideView guide={guide.data} />}
+          {!log?.reflection && !journal.success && !guide.success && (
+            <p className="text-sm text-muted-foreground">이 날 저널이 없습니다.</p>
+          )}
+        </div>
       </Section>
     </div>
   );

@@ -3,7 +3,11 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ChevronLeft } from "lucide-react";
 import { PageContainer } from "@/components/app/page-container";
+import { ClassifySuggestionPanel } from "@/components/ai/classify-suggestion";
+import { SummaryPanel } from "@/components/ai/summary-panel";
+import { aiAvailable } from "@/lib/ai/run";
 import { dayInTimezone } from "@/lib/dates";
+import { summarySchema } from "@/lib/prompts/summarize";
 import { getUserContext } from "@/lib/user";
 import { NoteView } from "./note-view";
 
@@ -49,6 +53,8 @@ async function Note({ params }: { params: PageProps<"/notes/[id]">["params"] }) 
   }));
 
   const day = note.daily_logs?.log_date ?? dayInTimezone(timezone, new Date(note.created_at));
+  const summary = summarySchema.safeParse(note.ai_summary);
+  const aiEnabled = aiAvailable();
   const tags = (note.note_tags ?? []).map((nt) => nt.tags?.name).filter((n): n is string => Boolean(n));
 
   return (
@@ -69,6 +75,12 @@ async function Note({ params }: { params: PageProps<"/notes/[id]">["params"] }) 
         tags={tags}
         categories={categories ?? []}
         attachments={attachments}
+        aiSlot={
+          <div className="flex flex-col gap-3 border-t pt-4">
+            <SummaryPanel noteId={note.id} saved={summary.success ? summary.data : null} enabled={aiEnabled} />
+            {note.content.trim() && <ClassifySuggestionPanel noteId={note.id} categories={categories ?? []} enabled={aiEnabled} />}
+          </div>
+        }
       />
     </div>
   );

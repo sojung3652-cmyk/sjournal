@@ -17,6 +17,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_cache: {
+        Row: {
+          created_at: string
+          day: string
+          id: string
+          input_hash: string
+          kind: string
+          output: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          day: string
+          id?: string
+          input_hash: string
+          kind: string
+          output: Json
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          day?: string
+          id?: string
+          input_hash?: string
+          kind?: string
+          output?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
       ai_runs: {
         Row: {
           created_at: string

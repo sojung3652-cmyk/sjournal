@@ -2,12 +2,16 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { PageContainer } from "@/components/app/page-container";
 import { Section } from "@/components/app/section";
+import { GuideDraft, JournalDraft, SuggestedTasks } from "@/components/ai/day-ai";
 import { DayClose } from "@/components/day/day-close";
 import { InProgressCards, ItemChecklist } from "@/components/day/item-checklist";
 import { NoteList } from "@/components/day/note-list";
 import { QuickAdd } from "@/components/day/quick-add";
 import { getDayData, getStreak } from "@/lib/data/day";
-import { formatDayLong } from "@/lib/dates";
+import { aiAvailable } from "@/lib/ai/run";
+import { addDays, formatDayLong } from "@/lib/dates";
+import { guideSchema } from "@/lib/prompts/guide";
+import { journalSchema } from "@/lib/prompts/journal";
 import { getUserContext } from "@/lib/user";
 
 export default function TodayPage() {
@@ -31,6 +35,11 @@ async function Today() {
     .select("id, title, status, category_id")
     .eq("status", "today")
     .order("position");
+  const { data: yesterday } = await supabase.from("daily_logs").select("ai_guide").eq("log_date", addDays(today, -1)).maybeSingle();
+  const yesterdayGuide = guideSchema.safeParse(yesterday?.ai_guide);
+  const savedJournal = journalSchema.safeParse(log?.ai_journal);
+  const savedGuide = guideSchema.safeParse(log?.ai_guide);
+  const aiEnabled = aiAvailable();
   const checklist = [...(todayItems ?? []), ...completed.filter((c) => !(todayItems ?? []).some((t) => t.id === c.id))];
 
   return (
@@ -47,8 +56,15 @@ async function Today() {
       </header>
 
       <Section title="빠른 추가">
-        <QuickAdd />
+        <QuickAdd categories={categories} aiEnabled={aiEnabled} />
       </Section>
+
+      {yesterdayGuide.success && (
+        <SuggestedTasks
+          guide={yesterdayGuide.data}
+          existingTitles={[...(todayItems ?? []), ...completed, ...inProgress].map((i) => i.title)}
+        />
+      )}
 
       <Section
         title="오늘 할 것"
@@ -77,7 +93,10 @@ async function Today() {
       </Section>
 
       <Section title="하루 마무리">
-        <DayClose day={today} reflection={log?.reflection ?? null} />
+        <DayClose day={today} reflection={log?.reflection ?? null}>
+          <JournalDraft day={today} saved={savedJournal.success ? savedJournal.data : null} enabled={aiEnabled} />
+          <GuideDraft day={today} saved={savedGuide.success ? savedGuide.data : null} enabled={aiEnabled} />
+        </DayClose>
       </Section>
     </div>
   );

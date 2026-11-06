@@ -97,11 +97,19 @@ src/types/database.ts           GENERATED Supabase types — never edit by hand
 - Search = RPC `search_notes(q)`: every word must match title/body/tags as a substring (pg_trgm-indexed ILIKE,
   LIKE chars escaped) and `simple` FTS only adds ranking. Korean has no FTS segmentation — keep the ILIKE path.
 
-### AI (later phases)
-- Prompts in `src/lib/prompts/`. Parse model JSON with tolerant safeParse + `max_tokens` headroom.
-- Haiku-class for classification/short summaries, Sonnet-class for journal/guide/scan.
-- Log every call to `ai_runs`; enforce a per-user daily limit; cache same-day same-request results.
-- AI output is always a draft shown with an 'AI 초안' label; saved only after user confirmation.
+### AI
+- Server only: `src/app/(app)/ai-actions.ts` -> `runStructured()` in `src/lib/ai/run.ts`. `ANTHROPIC_API_KEY` is never
+  `NEXT_PUBLIC_` and never reaches the browser.
+- Models in `src/lib/ai/models.ts` (verified via models.list): Haiku `claude-haiku-5-5` (classify, summarize),
+  Sonnet `claude-sonnet-5-5` (journal, guide). Sonnet thinks first: keep `maxTokens` headroom (8000).
+- Output = structured outputs (`output_config.format` JSON schema), NOT forced tool_choice — Sonnet 5.5 returns 400
+  for tool_choice "tool"/"any". The JSON schema may not use minItems > 1 / maxItems; enforce counts in zod.
+- Parse with `safeJson()` + zod `safeParse` (Rule 5). Never trust the shape.
+- Prompts: one file per feature in `src/lib/prompts/`; bump `version` when a prompt changes (it is part of the cache key).
+- Order per call: same-day cache (`ai_cache`) -> daily limit (50, `AI_DAILY_LIMIT`, counted in user tz) -> API ->
+  log `ai_runs` (append-only: no update/delete policy, so users can't reset the limit) -> cache.
+- Fallback: no key / 401 / 402 / 429 / 5xx / limit -> `{ ok: false, error }`; the UI shows it, the rest of the app works.
+- AI output is always a draft in `<AiBox>` (ai-surface + "AI 초안"), editable, saved only by the user.
 
 ### UI
 - Korean default, English toggle later. Show only the active locale — never KO+EN side by side.
