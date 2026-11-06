@@ -57,7 +57,17 @@ src/types/database.ts           GENERATED Supabase types — never edit by hand
 
 ### Next.js 16 + cacheComponents
 - Anything reading `cookies()` / the Supabase server client, or using `new Date()`, must render inside
-  `<Suspense>`; call `await connection()` first when the component uses current time.
+  `<Suspense>`. `lib/supabase/server.ts` `createClient()` already calls `await connection()` (supabase-js
+  uses `Date.now()` internally) — do not remove it. Components that use current time without it must call
+  `connection()` themselves.
+- After a server-action mutation, call `refresh()` from `next/cache` (data isn't cached, so this re-renders).
+- When `tsc` complains about `LayoutProps<"/x">` for a new route, run `npx next typegen` first.
+
+### Categories
+- Palette is fixed in `src/lib/categories.ts` (8 keys). DB stores the key, not hex
+  (`categories_color_check`). Always render color via `categoryHex()`.
+- Defaults (AI, 수학, 영어, 코딩) are created by `handle_new_user()` on signup only — not recreated on delete.
+- Reorder via RPC `reorder_categories(ids uuid[])` (security invoker, RLS applies).
 - Keep session reads out of layouts' top level — push them into a component behind a boundary.
 
 ### AI (later phases)
@@ -79,4 +89,5 @@ src/types/database.ts           GENERATED Supabase types — never edit by hand
 
 ## Status
 - Week 1 setup done: scaffold, schema + RLS, email auth, generated types, empty '오늘' screen.
+- Categories done: `/settings/categories` (add / rename / color / reorder / delete), signup defaults.
 - Not built yet (do not add without a phase plan): board, daily page, quick add, calendar, AI features.

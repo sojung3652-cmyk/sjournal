@@ -378,7 +378,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      reorder_categories: { Args: { ids: string[] }; Returns: undefined }
     }
     Enums: {
       study_status: "backlog" | "today" | "in_progress" | "done"

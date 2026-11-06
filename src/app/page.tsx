@@ -1,8 +1,8 @@
+import Link from "next/link";
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
-import { connection } from "next/server";
 import { logout } from "@/app/auth/actions";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
 
 // '오늘' (home). Setup phase: date + logout only. Features come in later phases.
@@ -18,8 +18,7 @@ export default function TodayPage() {
 }
 
 async function TodayHeader() {
-  // Stop prerendering here: everything below (session, new Date()) is per-request.
-  await connection();
+  // createClient() calls connection(), so new Date() below is request-time.
   const supabase = await createClient();
   const { data: claims } = await supabase.auth.getClaims();
   const userId = claims?.claims?.sub;
@@ -47,11 +46,16 @@ async function TodayHeader() {
         <h1 className="text-2xl font-semibold">오늘</h1>
         <p className="text-sm text-muted-foreground">{today}</p>
       </div>
-      <form action={logout}>
-        <Button type="submit" variant="ghost" size="sm">
-          로그아웃
-        </Button>
-      </form>
+      <div className="flex items-center gap-1">
+        <Link href="/settings" className={buttonVariants({ variant: "ghost", size: "sm" })}>
+          설정
+        </Link>
+        <form action={logout}>
+          <Button type="submit" variant="ghost" size="sm">
+            로그아웃
+          </Button>
+        </form>
+      </div>
     </header>
   );
 }
