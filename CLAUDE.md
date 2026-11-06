@@ -42,6 +42,11 @@ src/types/database.ts           GENERATED Supabase types — never edit by hand
 - Every table has `user_id uuid not null default auth.uid()` + RLS `(select auth.uid()) = user_id`
   for select/insert/update/delete. Exception: `profiles` uses `id = auth.uid()` (row created by the
   `on_auth_user_created` trigger). New tables must follow the same pattern.
+- FKs bypass RLS, so `*_check_refs` triggers verify that referenced rows (category, note, daily_log,
+  study_item, tag) belong to the same user. New FK columns to user-owned tables must be added there.
+- Internal helper functions go in the `private` schema (not exposed by the API).
+- Storage: private bucket `attachments`, object path MUST be `{user_id}/...` (policy-enforced, and
+  `attachments.storage_path` is checked too). Serve files via signed URLs, never public URLs.
 - On the server, identify the user with `supabase.auth.getClaims()` (verifies the JWT), not `getSession()`.
 - Claude API keys and any secret live only in server code (route handlers / server actions / Edge Functions).
   Never `NEXT_PUBLIC_` a secret. Only `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` are public.
