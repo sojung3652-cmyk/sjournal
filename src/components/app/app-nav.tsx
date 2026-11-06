@@ -8,7 +8,11 @@ import { NAV_ITEMS, isActive } from "./nav-items";
 
 /** Desktop: left sidebar. */
 export function SideNav() {
-  const pathname = usePathname();
+  return <SideNavView pathname={usePathname()} />;
+}
+
+/** Render-only; also used as the Suspense fallback (no active state). */
+export function SideNavView({ pathname }: { pathname: string }) {
   return (
     <aside className="sticky top-0 hidden h-dvh w-56 shrink-0 flex-col border-r bg-card px-3 py-6 md:flex">
       <Link href="/" className="px-3 pb-6 text-base font-semibold">
@@ -62,7 +66,10 @@ export function MobileTopBar() {
 }
 
 export function BottomTabs() {
-  const pathname = usePathname();
+  return <BottomTabsView pathname={usePathname()} />;
+}
+
+export function BottomTabsView({ pathname }: { pathname: string }) {
   return (
     <nav
       aria-label="주요 메뉴"

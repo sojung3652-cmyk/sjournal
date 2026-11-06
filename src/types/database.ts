@@ -381,6 +381,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      activity_days: {
+        Args: { p_from: string; p_to: string }
+        Returns: { category_ids: string[]; day: string }[]
+      }
       reorder_categories: { Args: { ids: string[] }; Returns: undefined }
     }
     Enums: {

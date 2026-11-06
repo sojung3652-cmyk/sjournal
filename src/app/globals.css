@@ -169,3 +169,22 @@
     @apply font-sans;
   }
 }
+/* Markdown rendering for notes/journal (no typography plugin; keep it quiet). */
+@layer components {
+  .md { @apply text-sm leading-relaxed break-words; }
+  .md > * + * { @apply mt-3; }
+  .md h1 { @apply text-lg font-semibold; }
+  .md h2 { @apply text-base font-semibold; }
+  .md h3 { @apply text-sm font-semibold; }
+  .md ul { @apply list-disc pl-5; }
+  .md ol { @apply list-decimal pl-5; }
+  .md li + li { @apply mt-1; }
+  .md a { @apply underline underline-offset-4 decoration-accent-strong; }
+  .md code { @apply rounded bg-muted px-1 py-0.5 font-mono text-[0.85em]; }
+  .md pre { @apply overflow-x-auto rounded-lg border bg-muted p-3; }
+  .md pre code { @apply bg-transparent p-0; }
+  .md blockquote { @apply border-l-2 border-accent-strong pl-3 text-muted-foreground; }
+  .md table { @apply w-full border-collapse text-left; }
+  .md th, .md td { @apply border px-2 py-1; }
+  .md hr { @apply border-border; }
+}

@@ -82,6 +82,16 @@ src/types/database.ts           GENERATED Supabase types — never edit by hand
 - dnd-kit: `@dnd-kit/core` 6.3.1. `DndContext` needs a fixed `id` (SSR hydration). Every drag action also has a
   menu/button fallback (mobile, keyboard).
 
+### Days, notes, files
+- Day data: `getDayData()` / `getStreak()` in `src/lib/data/day.ts`; activity = RPC `activity_days(from,to)`
+  (notes, done items in user tz, saved reflection/journal). Streak counts back from yesterday if today is empty.
+- Notes attach to the day via `daily_logs` (`ensureDailyLog`, unique user+date). Quick add text/link = server action;
+  files = `createFileNote` -> browser uploads to Storage -> `attachFile` (bypasses the 1MB action body limit).
+- Markdown: `<Markdown>` (react-markdown + remark-gfm, no raw HTML). Styles: `.md` in globals.css.
+- Dynamic routes: `params` is a Promise; await it inside a component under `<Suspense>` (Cache Components).
+- Client components using `usePathname()` in a layout need a Suspense boundary (see `(app)/layout.tsx`).
+- Next keeps the previous route mounted but hidden; in Playwright tests use `:visible` selectors.
+
 ### AI (later phases)
 - Prompts in `src/lib/prompts/`. Parse model JSON with tolerant safeParse + `max_tokens` headroom.
 - Haiku-class for classification/short summaries, Sonnet-class for journal/guide/scan.
