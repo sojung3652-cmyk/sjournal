@@ -2,14 +2,16 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
+/* Dark mode follows the OS setting. If a manual toggle is added later, switch to
+   a class strategy (.dark on <html>) and move the dark tokens under it. */
+@custom-variant dark (@media (prefers-color-scheme: dark));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-pretendard), system-ui, sans-serif;
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-heading: var(--font-pretendard), system-ui, sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -39,83 +41,122 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-accent-strong: var(--accent-strong);
+  --color-ai-surface: var(--ai-surface);
+  --color-ai-foreground: var(--ai-foreground);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-xl: calc(var(--radius) + 4px); /* cards: 12px */
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-:root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+/* Design rule: no shadows anywhere. Overriding the scale makes every shadow-*
+   utility (including ones inside shadcn components) render as nothing. */
+@theme {
+  --shadow-2xs: 0 0 #0000;
+  --shadow-xs: 0 0 #0000;
+  --shadow-sm: 0 0 #0000;
+  --shadow-md: 0 0 #0000;
+  --shadow-lg: 0 0 #0000;
+  --shadow-xl: 0 0 #0000;
+  --shadow-2xl: 0 0 #0000;
+  --inset-shadow-2xs: 0 0 #0000;
+  --inset-shadow-xs: 0 0 #0000;
+  --inset-shadow-sm: 0 0 #0000;
+  --drop-shadow-xs: 0 0 #0000;
+  --drop-shadow-sm: 0 0 #0000;
+  --drop-shadow-md: 0 0 #0000;
+  --drop-shadow-lg: 0 0 #0000;
+  --drop-shadow-xl: 0 0 #0000;
+  --drop-shadow-2xl: 0 0 #0000;
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+/* ---------------------------------------------------------------------------
+   Design system: warm paper notebook. Ivory page, white cards, baby-pink accent,
+   1px borders, no shadows. Keep values in sync with scripts/check-contrast.mts.
+   Note: shadcn's --accent is the subtle hover background (ghost buttons, menus).
+   The brand accent for icons/checks is --accent-strong.
+   --------------------------------------------------------------------------- */
+:root {
+  --radius: 8px; /* buttons & inputs = rounded-lg (8px), cards = rounded-xl (12px) */
+
+  --background: #fbf7f2;
+  --foreground: #3f3638;
+  --card: #ffffff;
+  --card-foreground: #3f3638;
+  --popover: #ffffff;
+  --popover-foreground: #3f3638;
+  --primary: #ebc1c8;
+  --primary-foreground: #5a2e36;
+  --secondary: #f7f2ed;
+  --secondary-foreground: #3f3638;
+  --muted: #f7f2ed;
+  /* Spec was #8A7F80 (3.6:1 on ivory); darkened to pass WCAG AA 4.5:1. */
+  --muted-foreground: #766b6c;
+  --accent: #f7f2ed;
+  --accent-foreground: #3f3638;
+  --accent-strong: #b77a85;
+  --ai-surface: #f6e3e6;
+  --ai-foreground: #5a3f44;
+  --destructive: #b23a3a;
+  --border: #ede4dc;
+  --input: #ede4dc;
+  --ring: #b77a85;
+
+  --chart-1: #e8b4bc;
+  --chart-2: #b8c9b0;
+  --chart-3: #afc3d6;
+  --chart-4: #c9b8d9;
+  --chart-5: #ebd9a8;
+
+  --sidebar: #fbf7f2;
+  --sidebar-foreground: #3f3638;
+  --sidebar-primary: #ebc1c8;
+  --sidebar-primary-foreground: #5a2e36;
+  --sidebar-accent: #f7f2ed;
+  --sidebar-accent-foreground: #3f3638;
+  --sidebar-border: #ede4dc;
+  --sidebar-ring: #b77a85;
 }
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #2a2425;
+    --foreground: #f3ece8;
+    --card: #352e2f;
+    --card-foreground: #f3ece8;
+    --popover: #352e2f;
+    --popover-foreground: #f3ece8;
+    --primary: #d9a3ac;
+    --primary-foreground: #2a1a1d;
+    --secondary: #3f3637;
+    --secondary-foreground: #f3ece8;
+    --muted: #3f3637;
+    --muted-foreground: #b3a7a8;
+    --accent: #3f3637;
+    --accent-foreground: #f3ece8;
+    --accent-strong: #d9a3ac;
+    --ai-surface: #4a3a3d;
+    --ai-foreground: #f3dde1;
+    --destructive: #f08a84;
+    --border: #4a4042;
+    --input: #4a4042;
+    --ring: #d9a3ac;
+
+    --sidebar: #2a2425;
+    --sidebar-foreground: #f3ece8;
+    --sidebar-primary: #d9a3ac;
+    --sidebar-primary-foreground: #2a1a1d;
+    --sidebar-accent: #3f3637;
+    --sidebar-accent-foreground: #f3ece8;
+    --sidebar-border: #4a4042;
+    --sidebar-ring: #d9a3ac;
+  }
+}
+
 
 @layer base {
   * {

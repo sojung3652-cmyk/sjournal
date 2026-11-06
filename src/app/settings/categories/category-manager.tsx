@@ -5,7 +5,8 @@ import { ArrowDown, ArrowUp, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CATEGORY_COLORS, CATEGORY_NAME_MAX, categoryHex } from "@/lib/categories";
+import { CategoryBadge } from "@/components/category-badge";
+import { CATEGORY_COLORS, CATEGORY_NAME_MAX } from "@/lib/categories";
 import {
   createCategory,
   deleteCategory,
@@ -51,7 +52,7 @@ export function CategoryManager({ categories }: { categories: Category[] }) {
       {categories.length === 0 ? (
         <p className="text-sm text-muted-foreground">카테고리가 없습니다. 아래에서 추가해 주세요.</p>
       ) : (
-        <ul className="flex flex-col divide-y rounded-lg border">
+        <ul className="flex flex-col divide-y rounded-xl border bg-card">
           {categories.map((category, index) => (
             <li key={category.id} className="p-3">
               {editingId === category.id ? (
@@ -63,12 +64,9 @@ export function CategoryManager({ categories }: { categories: Category[] }) {
                 />
               ) : (
                 <div className="flex items-center gap-3">
-                  <span
-                    className="size-3 shrink-0 rounded-full"
-                    style={{ backgroundColor: categoryHex(category.color) }}
-                    aria-hidden
-                  />
-                  <span className="flex-1 truncate text-sm">{category.name}</span>
+                  <div className="min-w-0 flex-1">
+                    <CategoryBadge name={category.name} color={category.color} />
+                  </div>
 
                   {confirmingId === category.id ? (
                     <div className="flex items-center gap-2">
@@ -138,7 +136,7 @@ export function CategoryManager({ categories }: { categories: Category[] }) {
       )}
       {error && <p className="text-sm text-destructive">{error}</p>}
 
-      <div className="flex flex-col gap-3 rounded-lg border p-4">
+      <div className="flex flex-col gap-3 rounded-xl border bg-card p-4">
         <h3 className="text-sm font-medium">새 카테고리</h3>
         <CategoryForm mode="create" />
       </div>
@@ -197,7 +195,7 @@ function CategoryForm({
                 className="peer sr-only"
               />
               <span
-                className="block size-7 rounded-full ring-offset-2 ring-offset-background peer-checked:ring-2 peer-checked:ring-foreground peer-focus-visible:ring-2 peer-focus-visible:ring-ring"
+                className="block size-7 rounded-full ring-offset-2 ring-offset-card peer-checked:ring-2 peer-checked:ring-accent-strong peer-focus-visible:ring-2 peer-focus-visible:ring-ring"
                 style={{ backgroundColor: c.hex }}
               />
               <span className="sr-only">{c.label}</span>
@@ -209,7 +207,8 @@ function CategoryForm({
       {state.error && <p className="text-sm text-destructive">{state.error}</p>}
 
       <div className="flex gap-2">
-        <Button type="submit" size="sm" disabled={pending}>
+        {/* Design rule: only one primary (pink) button per screen — "추가". */}
+        <Button type="submit" size="sm" variant={mode === "create" ? "default" : "outline"} disabled={pending}>
           {mode === "create" ? "추가" : "저장"}
         </Button>
         {mode === "edit" && (

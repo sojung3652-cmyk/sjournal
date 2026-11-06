@@ -64,8 +64,8 @@ src/types/database.ts           GENERATED Supabase types — never edit by hand
 - When `tsc` complains about `LayoutProps<"/x">` for a new route, run `npx next typegen` first.
 
 ### Categories
-- Palette is fixed in `src/lib/categories.ts` (8 keys). DB stores the key, not hex
-  (`categories_color_check`). Always render color via `categoryHex()`.
+- Palette is fixed in `src/lib/categories.ts` (8 keys, see 디자인 시스템). DB stores the key, not hex
+  (`categories_color_check`). Render with `<CategoryBadge>` / `categoryStyle()`.
 - Defaults (AI, 수학, 영어, 코딩) are created by `handle_new_user()` on signup only — not recreated on delete.
 - Reorder via RPC `reorder_categories(ids uuid[])` (security invoker, RLS applies).
 - Keep session reads out of layouts' top level — push them into a component behind a boundary.
@@ -80,6 +80,42 @@ src/types/database.ts           GENERATED Supabase types — never edit by hand
 - Korean default, English toggle later. Show only the active locale — never KO+EN side by side.
 - No emoji in UI. No pre-filled form fields. Quiet, minimal design. Dark mode supported.
 - Same fixed color per category on every screen.
+
+## 디자인 시스템 (design system)
+Concept: warm paper notebook — ivory page, white cards, baby-pink accent, thin borders, no shadows.
+Tokens live in `src/app/globals.css` (shadcn CSS variables). Use token classes (`bg-card`,
+`text-muted-foreground`, …) — never hard-code hex in components.
+
+| token | light | dark | use |
+| --- | --- | --- | --- |
+| background | #FBF7F2 | #2A2425 | page (ivory) |
+| card / popover | #FFFFFF | #352E2F | cards, lists, forms |
+| border / input | #EDE4DC | #4A4042 | all 1px borders |
+| foreground | #3F3638 | #F3ECE8 | body text (warm charcoal) |
+| muted-foreground | #766B6C | #B3A7A8 | secondary text (spec #8A7F80 failed 4.5:1, darkened) |
+| muted / secondary / accent | #F7F2ED | #3F3637 | subtle fills, hover backgrounds |
+| primary / primary-foreground | #EBC1C8 / #5A2E36 | #D9A3AC / #2A1A1D | the one main button |
+| accent-strong | #B77A85 | #D9A3AC | accent icons, checks, selected rings, focus ring |
+| ai-surface / ai-foreground | #F6E3E6 / #5A3F44 | #4A3A3D / #F3DDE1 | AI draft blocks |
+| destructive | #B23A3A | #F08A84 | delete / errors |
+
+Rules
+- **Primary (pink) on at most one main button per screen.** Others: `outline`, `ghost`, `secondary`.
+- shadcn `accent` = hover background, NOT the brand accent. Brand accent = `accent-strong`
+  (`text-accent-strong`, `ring-accent-strong`). It is 3.4:1 on white → icons/borders only, not body text.
+- **No shadows.** All `--shadow-*` tokens are zeroed in globals.css; don't add `box-shadow` or `ring-*` as a
+  fake shadow. Separation = 1px `border` (`border-border`).
+- Radius: buttons & inputs `rounded-lg` (8px), cards/lists `rounded-xl` (12px), badges `rounded-full`.
+- Font: Pretendard Variable via `next/font/local` (`src/app/fonts/`, OFL-1.1) → `font-sans`.
+- Dark mode follows the OS (`prefers-color-scheme`); `dark:` variant is media-based. A manual toggle later
+  needs a class strategy.
+- AI drafts: `bg-ai-surface text-ai-foreground` + an 'AI 초안' label, always visually distinct from user text.
+- Category colors: 8 fixed pastels in `src/lib/categories.ts` — rose #E8B4BC, sage #B8C9B0,
+  dusty_blue #AFC3D6, lavender #C9B8D9, butter #EBD9A8, peach #EFC2A6, mint #B5D6CF, greige #CFC4B8.
+  Render with `<CategoryBadge>` (pill, pastel bg + computed dark tone, same in both modes). Text tone is
+  computed (OKLCH darkening to ≥5:1) — never hand-pick badge text colors.
+- Contrast: `npm run check:contrast` must pass after any color change (text ≥4.5:1, icons ≥3:1). Keep
+  `scripts/check-contrast.mts` token values in sync with globals.css.
 
 ### Workflow
 - One branch per feature; verify on Vercel preview before merge.
