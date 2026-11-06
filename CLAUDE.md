@@ -15,7 +15,8 @@ Daily flow: plan → in progress → done → reflection, with AI drafts the use
   `npx shadcn@4.23.0 add <name>`; do not hand-edit `src/components/ui/*` unless necessary.
 - Supabase: Postgres + Auth (email/password) + Storage + RLS, via `@supabase/ssr` 0.12 / `@supabase/supabase-js` 2.119
   - Project: `sjournal` (ref `bvgtvncwlxgiieuuxyql`, ap-south-1)
-- Planned (not yet installed): Anthropic SDK (Claude API), Tiptap editor, Vercel hosting, PWA.
+- Anthropic SDK 1.6 (server only), zod 4, @dnd-kit/core 6.3, react-markdown 10 + remark-gfm 4.
+- Planned (not yet installed): Vercel hosting, PWA. Editor is plain markdown (Tiptap not used).
 
 ## Folder structure
 ```
@@ -159,6 +160,9 @@ Rules
 - End of each phase: run Supabase advisors (security + performance).
 
 ## Status
-- Week 1 setup done: scaffold, schema + RLS, email auth, generated types, empty '오늘' screen.
-- Categories done: `/settings/categories` (add / rename / color / reorder / delete), signup defaults.
-- Not built yet (do not add without a phase plan): board, daily page, quick add, calendar, AI features.
+- MVP done (2026-11-07): auth, design system + responsive shell, categories (`/categories`), board (`/board`),
+  today + quick add + day close (`/`), daily pages (`/day/[date]`), notes (`/notes/[id]`), calendar, search,
+  AI (classify, summary, journal, guide) with usage limit and cache.
+- Not built yet (v1.1+, needs a phase plan first): image/PDF text extraction, weekly/monthly reports (pg_cron),
+  spaced-repetition review, quizzes, semantic search (pgvector), export, PWA, English locale toggle,
+  account deletion (must also remove Storage files: `storage.objects` can't be deleted via SQL).

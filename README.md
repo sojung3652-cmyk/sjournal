@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Study Journal
 
-## Getting Started
+A personal study journal: plan → in progress → done → reflection, with AI drafts for
+summaries, a daily journal and a next-day study guide. Spec: [`docs/PRD.md`](docs/PRD.md).
+Conventions for contributors (and Claude Code): [`CLAUDE.md`](CLAUDE.md).
 
-First, run the development server:
+## Stack
+
+- Next.js 16 (App Router, Cache Components) · React 19 · TypeScript
+- Tailwind CSS v4 · shadcn/ui (Base UI) · Pretendard
+- Supabase: Postgres + Auth (email/password) + Storage + RLS
+- Anthropic API (server only) · @dnd-kit · react-markdown
+
+## Run locally
+
+Requirements: Node.js 20+ (developed on 24), npm.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local   # then fill in the values below
+npm run dev                  # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Other scripts:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| command | what it does |
+| --- | --- |
+| `npm run build` | production build (must pass before every commit) |
+| `npm run start` | serve the production build |
+| `npm run lint` | ESLint |
+| `npm run check:contrast` | WCAG contrast audit for theme and category colors |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Environment variables
 
-## Learn More
+Put these in `.env.local` (gitignored). Restart `npm run dev` after changing them.
 
-To learn more about Next.js, take a look at the following resources:
+| name | required | where it is used | notes |
+| --- | --- | --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | yes | browser + server | Supabase → Project Settings → API → Project URL |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | yes | browser + server | publishable key (`sb_publishable_...`). Safe to expose; data is protected by RLS |
+| `ANTHROPIC_API_KEY` | no | server only | enables AI features. Without it the app works and AI buttons show a message |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Never put a secret behind a `NEXT_PUBLIC_` prefix.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Database
 
-## Deploy on Vercel
+Migrations live in `supabase/migrations/` and were applied with the Supabase MCP server
+(project `sjournal`). Every table is owned by `user_id` with RLS `user_id = auth.uid()`;
+files go to the private `attachments` bucket under `{user_id}/...`. After changing the
+schema, regenerate `src/types/database.ts`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Supabase dashboard settings worth checking:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Authentication → URL Configuration: add `http://localhost:3000/auth/callback`
+  (and your deployed URL + `/auth/callback`) to Redirect URLs, for email confirmation links.
+- Authentication → Providers → Email: email confirmation is on by default.
+
+## AI
+
+- Haiku (`claude-haiku-5-5`): note classification, note summary.
+- Sonnet (`claude-sonnet-5-5`): day-close journal, next-day guide.
+- 50 AI calls per user per day (`ai_runs`), identical same-day requests are cached (`ai_cache`).
+- Prompts: `src/lib/prompts/`.
