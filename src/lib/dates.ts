@@ -40,23 +40,41 @@ export function addDays(day: string, delta: number): string {
   return d.toISOString().slice(0, 10);
 }
 
-export function formatDayLong(day: string): string {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: "UTC",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    weekday: "long",
-  }).format(new Date(`${day}T00:00:00Z`));
+// --- Locale-aware formatting -------------------------------------------------
+// en: "Saturday, November 7, 2026" / "Sat, Nov 7" / "Nov 7, 2026" / "8:05 PM"
+// ko: "2026년 11월 7일 토요일"      / "11월 7일 (토)" / "2026년 11월 7일" / "20:05"
+const tag = (locale: string) => (locale === "ko" ? "ko-KR" : "en-US");
+const dayDate = (day: string) => new Date(`${day}T00:00:00Z`);
+
+export function formatDayLong(day: string, locale: string): string {
+  return new Intl.DateTimeFormat(tag(locale), { timeZone: "UTC", year: "numeric", month: "long", day: "numeric", weekday: "long" }).format(dayDate(day));
 }
 
-export function formatDayShort(day: string): string {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: "UTC",
-    month: "short",
-    day: "numeric",
-    weekday: "short",
-  }).format(new Date(`${day}T00:00:00Z`));
+export function formatDayShort(day: string, locale: string): string {
+  return new Intl.DateTimeFormat(tag(locale), { timeZone: "UTC", month: locale === "ko" ? "long" : "short", day: "numeric", weekday: "short" }).format(dayDate(day));
+}
+
+/** Calendar date of an instant in `tz`, e.g. "Nov 7, 2026" / "2026년 11월 7일" (year optional). */
+export function formatDate(iso: string, tz: string, locale: string, withYear = true): string {
+  const safeTz = isValidTimezone(tz) ? tz : DEFAULT_TIMEZONE;
+  return new Intl.DateTimeFormat(tag(locale), { timeZone: safeTz, ...(withYear ? { year: "numeric" } : {}), month: locale === "ko" ? "long" : "short", day: "numeric" }).format(new Date(iso));
+}
+
+/** Time of day; 24h in Korean (Node's ICU renders the ko day period as "PM"). */
+export function formatTime(iso: string, tz: string, locale: string): string {
+  const safeTz = isValidTimezone(tz) ? tz : DEFAULT_TIMEZONE;
+  return new Intl.DateTimeFormat(tag(locale), { timeZone: safeTz, hour: "numeric", minute: "2-digit", ...(locale === "ko" ? { hourCycle: "h23" } : {}) }).format(new Date(iso));
+}
+
+/** "November 2026" / "2026년 11월" */
+export function formatMonth(month: string, locale: string): string {
+  return new Intl.DateTimeFormat(tag(locale), { timeZone: "UTC", year: "numeric", month: "long" }).format(dayDate(`${month}-01`));
+}
+
+/** Short weekday names starting Sunday. */
+export function weekdayNames(locale: string): string[] {
+  const fmt = new Intl.DateTimeFormat(tag(locale), { timeZone: "UTC", weekday: "short" });
+  return Array.from({ length: 7 }, (_, i) => fmt.format(dayDate(`2026-11-${String(1 + i).padStart(2, "0")}`))); // 2026-11-01 is a Sunday
 }
 
 /** UTC instant range [start, end) covering the given local day in `tz`. */

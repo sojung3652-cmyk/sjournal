@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { MODELS } from "@/lib/ai/models";
 import type { PromptSpec } from "@/lib/ai/run";
-import { LANGUAGE_RULE } from "./language";
 import { objList, str, strList } from "./zod-tolerant";
 
 export const categorySummarySchema = z.object({
@@ -14,7 +13,7 @@ export type CategorySummary = z.infer<typeof categorySummarySchema>;
 
 export const categorySummaryPrompt: PromptSpec<CategorySummary> = {
   kind: "category_summary",
-  version: "2",
+  version: "3",
   model: MODELS.smart,
   maxTokens: 12000, // Sonnet thinks first and the output is long; keep headroom
   system: [
@@ -25,7 +24,6 @@ export const categorySummaryPrompt: PromptSpec<CategorySummary> = {
     "- weak_spots: 1-4 things that still look weak, unclear or unfinished (open study items, notes that say confused/hard, gaps).",
     "- next_up: exactly 3 concrete next things to study, each with a one-sentence reason.",
     "- Use only what is in the records. Do not invent facts. If older records were omitted, focus on what is given.",
-    LANGUAGE_RULE,
   ].join("\n"),
   jsonSchema: {
     type: "object",

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { ArrowDown, ArrowUp, Pencil, Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,6 +27,8 @@ export function CategoryManager({
   categories: Category[];
   stats?: Record<string, CategoryStats>;
 }) {
+  const t = useTranslations("categories");
+  const tc = useTranslations("common");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -53,7 +56,7 @@ export function CategoryManager({
   return (
     <section className="flex flex-col gap-6">
       {categories.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No categories yet. Add one below.</p>
+        <p className="text-sm text-muted-foreground">{t("empty")}</p>
       ) : (
         <ul className="flex flex-col divide-y rounded-xl border bg-card">
           {categories.map((category, index) => (
@@ -70,7 +73,7 @@ export function CategoryManager({
                   <Link
                     href={`/categories/${category.id}`}
                     className="-m-1.5 flex min-w-0 flex-1 flex-col items-start gap-1.5 rounded-lg p-1.5 hover:bg-muted"
-                    aria-label={`Open ${category.name}`}
+                    aria-label={t("open", { name: category.name })}
                   >
                     <CategoryBadge name={category.name} color={category.color} />
                     <StatsLine stats={stats[category.id]} />
@@ -78,12 +81,12 @@ export function CategoryManager({
 
                   {confirmingId === category.id ? (
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground">Delete this?</span>
+                      <span className="text-xs text-muted-foreground">{t("deleteConfirm")}</span>
                       <Button size="sm" variant="destructive" disabled={pending} onClick={() => remove(category.id)}>
-                        Delete
+                        {tc("delete")}
                       </Button>
                       <Button size="sm" variant="ghost" onClick={() => setConfirmingId(null)}>
-                        Cancel
+                        {tc("cancel")}
                       </Button>
                     </div>
                   ) : (
@@ -91,7 +94,7 @@ export function CategoryManager({
                       <Button
                         size="icon-sm"
                         variant="ghost"
-                        aria-label={`Move ${category.name} up`}
+                        aria-label={t("moveUp", { name: category.name })}
                         disabled={pending || index === 0}
                         onClick={() => move(index, -1)}
                       >
@@ -100,7 +103,7 @@ export function CategoryManager({
                       <Button
                         size="icon-sm"
                         variant="ghost"
-                        aria-label={`Move ${category.name} down`}
+                        aria-label={t("moveDown", { name: category.name })}
                         disabled={pending || index === categories.length - 1}
                         onClick={() => move(index, 1)}
                       >
@@ -109,7 +112,7 @@ export function CategoryManager({
                       <Button
                         size="icon-sm"
                         variant="ghost"
-                        aria-label={`Edit ${category.name}`}
+                        aria-label={t("editName", { name: category.name })}
                         onClick={() => {
                           setConfirmingId(null);
                           setEditingId(category.id);
@@ -120,7 +123,7 @@ export function CategoryManager({
                       <Button
                         size="icon-sm"
                         variant="ghost"
-                        aria-label={`Delete ${category.name}`}
+                        aria-label={t("deleteName", { name: category.name })}
                         onClick={() => {
                           setEditingId(null);
                           setConfirmingId(category.id);
@@ -139,13 +142,13 @@ export function CategoryManager({
 
       {confirmingId && (
         <p className="text-xs text-muted-foreground">
-          Deleting keeps this category&apos;s items and notes; they just become uncategorized.
+          {t("deleteNote")}
         </p>
       )}
       {error && <p className="text-sm text-destructive">{error}</p>}
 
       <div className="flex flex-col gap-3 rounded-xl border bg-card p-4">
-        <h3 className="text-sm font-medium">New category</h3>
+        <h3 className="text-sm font-medium">{t("new")}</h3>
         <CategoryForm mode="create" />
       </div>
     </section>
@@ -161,6 +164,9 @@ function CategoryForm({
   category?: Category;
   onDone?: () => void;
 }) {
+  const t = useTranslations("categories");
+  const tc = useTranslations("common");
+  const tColor = useTranslations("colors");
   const action = mode === "create" ? createCategory : updateCategory;
   const [state, formAction, pending] = useActionState<ActionResult, FormData>(action, {});
   const formRef = useRef<HTMLFormElement>(null);
@@ -177,7 +183,7 @@ function CategoryForm({
       {category && <input type="hidden" name="id" value={category.id} />}
       <div className="flex flex-col gap-2">
         <Label htmlFor={`${idPrefix}-name`} className={mode === "edit" ? "sr-only" : undefined}>
-          Name
+          {tc("name")}
         </Label>
         <Input
           id={`${idPrefix}-name`}
@@ -190,10 +196,10 @@ function CategoryForm({
       </div>
 
       <fieldset className="flex flex-col gap-2">
-        <legend className="mb-2 text-sm font-medium">Color</legend>
+        <legend className="mb-2 text-sm font-medium">{t("color")}</legend>
         <div className="flex flex-wrap gap-2">
           {CATEGORY_COLORS.map((c) => (
-            <label key={c.key} className="cursor-pointer" title={c.label}>
+            <label key={c.key} className="cursor-pointer" title={tColor(c.key)}>
               <input
                 type="radio"
                 name="color"
@@ -206,7 +212,7 @@ function CategoryForm({
                 className="block size-7 rounded-full ring-offset-2 ring-offset-card peer-checked:ring-2 peer-checked:ring-accent-strong peer-focus-visible:ring-2 peer-focus-visible:ring-ring"
                 style={{ backgroundColor: c.hex }}
               />
-              <span className="sr-only">{c.label}</span>
+              <span className="sr-only">{tColor(c.key)}</span>
             </label>
           ))}
         </div>
@@ -217,11 +223,11 @@ function CategoryForm({
       <div className="flex gap-2">
         {/* Design rule: only one primary (pink) button per screen — "Add". */}
         <Button type="submit" size="sm" variant={mode === "create" ? "default" : "outline"} disabled={pending}>
-          {mode === "create" ? "Add" : "Save"}
+          {mode === "create" ? tc("add") : tc("save")}
         </Button>
         {mode === "edit" && (
           <Button type="button" size="sm" variant="ghost" onClick={onDone}>
-            Cancel
+            {tc("cancel")}
           </Button>
         )}
       </div>
@@ -230,13 +236,14 @@ function CategoryForm({
 }
 
 function StatsLine({ stats }: { stats?: CategoryStats }) {
+  const t = useTranslations("categories");
   if (!stats) return null;
   const progress = stats.total ? Math.round((stats.done / stats.total) * 100) : 0;
   return (
     <p className="text-xs text-muted-foreground">
-      {stats.notes} notes · {stats.done}/{stats.total} done
-      {stats.total > 0 && ` (${progress}%)`}
-      {stats.lastStudied && ` · last ${stats.lastStudied}`}
+      {t("stats", { notes: stats.notes, done: stats.done, total: stats.total })}
+      {stats.total > 0 && t("progress", { percent: progress })}
+      {stats.lastStudied && t("last", { date: stats.lastStudied })}
     </p>
   );
 }

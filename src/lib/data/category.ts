@@ -8,8 +8,9 @@ type Client = SupabaseClient<Database>;
 export type RecordType = "all" | "note" | "item" | "link";
 export type RangeKey = "week" | "month" | "all";
 
-export const RANGE_LABEL: Record<RangeKey, string> = { week: "1 week", month: "1 month", all: "All time" };
-export const TYPE_LABEL: Record<RecordType, string> = { all: "All", note: "Notes", item: "Study items", link: "Links" };
+// Labels: messages categoryDetail.range.<key> / categoryDetail.type.<key>.
+export const RANGE_KEYS: RangeKey[] = ["week", "month", "all"];
+export const TYPE_KEYS: RecordType[] = ["all", "note", "item", "link"];
 
 export function parseRange(v: unknown): RangeKey {
   return v === "week" || v === "month" ? v : "all";
@@ -82,7 +83,7 @@ export async function getCategoryRecords(
     out.push({
       kind: "note",
       id: n.id,
-      title: n.title || n.content.slice(0, 60) || "Untitled",
+      title: n.title || n.content.slice(0, 60),
       day: n.daily_logs?.log_date ?? dayInTimezone(tz, new Date(n.created_at)),
       at: n.created_at,
       tags: (n.note_tags ?? []).map((t) => t.tags?.name).filter((x): x is string => Boolean(x)),

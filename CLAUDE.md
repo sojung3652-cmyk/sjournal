@@ -128,10 +128,24 @@ src/types/database.ts           GENERATED Supabase types — never edit by hand
 - AI output is always a draft in `<AiBox>` (ai-surface + "AI draft"), editable, saved only by the user.
 
 ### UI
-- UI language is **English only** (Kim's decision, 2026-11-07). User content (notes, titles, categories,
-  reflections) is mostly Korean — never translate or alter it. No KO+EN side by side in the UI chrome.
-- Dates/times: `en-US` formats (`src/lib/dates.ts`). AI drafts follow the language of the user's notes
-  (`LANGUAGE_RULE` in `src/lib/prompts/language.ts`).
+- **Bilingual UI via next-intl 4.14 (no URL prefix): `en` default, `ko`.** Every UI string lives in
+  `messages/en.json` + `messages/ko.json` (same keys). `t()` keys are type-checked against en.json
+  (`src/i18n/types.d.ts`). `npm run check:i18n` must pass (finds hardcoded text + key mismatches).
+  Show one locale at a time — never KO+EN side by side (the switcher's own "English / 한국어" labels excepted).
+- Locale order: `profiles.locale` (mirrored into the `NEXT_LOCALE` cookie on login and on switch) → cookie →
+  `Accept-Language` → `en`. Switch = `setLocale()` (`src/app/i18n-actions.ts`).
+- Cache Components: the root layout renders `NextIntlClientProvider` inside `<Suspense>` (locale is request
+  data); `<html lang>` is fixed client-side by `<HtmlLang>`.
+- Server code: `getTranslations()` / `getLocale()`; client: `useTranslations()` / `useLocale()`. Don't name loop
+  variables `t` where a translator `t` is in scope.
+- Dates: always the locale-aware helpers in `src/lib/dates.ts` (`formatDayLong/Short`, `formatDate`,
+  `formatTime`, `formatMonth`, `weekdayNames`) with an explicit locale. en "Nov 7, 2026" / ko "2026년 11월 7일".
+- User content (notes, titles, categories, reflections) is never translated. Default category names follow
+  the signup locale (`handle_new_user` reads `raw_user_meta_data.locale`).
+- AI output language = the user's locale (`outputLanguageRule()` appended in `runStructured`; locale is part of
+  the cache key). Background jobs (`after()`) must capture the locale before scheduling. Saved AI results are
+  shown as stored, never re-translated.
+- Auth email templates (en/ko): `docs/auth-email-templates.md` (pasted into the dashboard manually).
 - No emoji in UI. No pre-filled form fields. Quiet, minimal design. Dark mode supported.
 - Same fixed color per category on every screen.
 

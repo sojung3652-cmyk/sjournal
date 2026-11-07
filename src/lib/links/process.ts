@@ -12,7 +12,7 @@ type Ctx = NonNullable<Awaited<ReturnType<typeof getActionContext>>>;
  * Never throws. If the page can't be fetched the card falls back to site name +
  * favicon; if the summary can't be made (no key, limit, API error) it is skipped quietly.
  */
-export async function processLink(ctx: Ctx, linkId: string): Promise<void> {
+export async function processLink(ctx: Ctx, linkId: string, locale: string): Promise<void> {
   const { data: link } = await ctx.supabase.from("links").select("url, title").eq("id", linkId).maybeSingle();
   if (!link) return;
 
@@ -46,7 +46,7 @@ export async function processLink(ctx: Ctx, linkId: string): Promise<void> {
   let summary: { ai_summary: { lines: string[] }; keywords: string[]; suggested_category_id: string | null } | null = null;
   try {
     const { data: categories } = await ctx.supabase.from("categories").select("id, name").order("sort_order");
-    const res = await runStructured(ctx, linkSummaryPrompt, buildLinkSummaryInput(meta, (categories ?? []).map((c) => c.name)));
+    const res = await runStructured(ctx, linkSummaryPrompt, buildLinkSummaryInput(meta, (categories ?? []).map((c) => c.name)), { locale });
     if (res.ok) {
       const suggested = (categories ?? []).find((c) => c.name === res.data.category);
       summary = { ai_summary: { lines: res.data.lines }, keywords: res.data.keywords, suggested_category_id: suggested?.id ?? null };

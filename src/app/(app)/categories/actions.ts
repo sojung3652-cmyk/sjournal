@@ -1,6 +1,7 @@
 "use server";
 
 import { refresh } from "next/cache";
+import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { CATEGORY_NAME_MAX, isCategoryColor } from "@/lib/categories";
 
@@ -8,21 +9,23 @@ export type ActionResult = { error?: string; ok?: boolean };
 
 const DUPLICATE = "23505";
 
-function parse(formData: FormData) {
+async function parse(formData: FormData) {
+  const t = await getTranslations("categories.errors");
   const name = String(formData.get("name") ?? "").trim();
   const color = String(formData.get("color") ?? "");
-  if (!name) return { error: "Enter a name." } as const;
-  if (name.length > CATEGORY_NAME_MAX) return { error: `Name must be ${CATEGORY_NAME_MAX} characters or fewer.` } as const;
-  if (!isCategoryColor(color)) return { error: "Choose a color." } as const;
+  if (!name) return { error: t("name") } as const;
+  if (name.length > CATEGORY_NAME_MAX) return { error: t("nameTooLong", { max: CATEGORY_NAME_MAX }) } as const;
+  if (!isCategoryColor(color)) return { error: t("color") } as const;
   return { name, color } as const;
 }
 
-function dbError(code: string | undefined): ActionResult {
-  return { error: code === DUPLICATE ? "That name already exists." : "Couldn't save. Please try again." };
+async function dbError(code: string | undefined): Promise<ActionResult> {
+  const t = await getTranslations();
+  return { error: code === DUPLICATE ? t("categories.errors.duplicate") : t("errors.saveRetry") };
 }
 
 export async function createCategory(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
-  const input = parse(formData);
+  const input = await parse(formData);
   if ("error" in input) return { error: input.error };
 
   const supabase = await createClient();
@@ -39,7 +42,7 @@ export async function createCategory(_prev: ActionResult, formData: FormData): P
     color: input.color,
     sort_order: (last?.sort_order ?? -1) + 1,
   });
-  if (error) return dbError(error.code);
+  if (error) return await dbError(error.code);
 
   refresh();
   return { ok: true };
@@ -47,7 +50,7 @@ export async function createCategory(_prev: ActionResult, formData: FormData): P
 
 export async function updateCategory(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
   const id = String(formData.get("id") ?? "");
-  const input = parse(formData);
+  const input = await parse(formData);
   if ("error" in input) return { error: input.error };
 
   const supabase = await createClient();
@@ -55,8 +58,8 @@ export async function updateCategory(_prev: ActionResult, formData: FormData): P
     .from("categories")
     .update({ name: input.name, color: input.color }, { count: "exact" })
     .eq("id", id);
-  if (error) return dbError(error.code);
-  if (!count) return { error: "Category not found." };
+  if (error) return await dbError(error.code);
+  if (!count) return { error: (await getTranslations("categories.errors"))("notFound") };
 
   refresh();
   return { ok: true };
@@ -66,7 +69,7 @@ export async function deleteCategory(id: string): Promise<ActionResult> {
   const supabase = await createClient();
   // study_items / notes keep their rows; category_id becomes null (FK on delete set null).
   const { error } = await supabase.from("categories").delete().eq("id", id);
-  if (error) return { error: "Couldn't delete. Please try again." };
+  if (error) return { error: (await getTranslations("errors"))("deleteRetry") };
 
   refresh();
   return { ok: true };
@@ -75,7 +78,7 @@ export async function deleteCategory(id: string): Promise<ActionResult> {
 export async function reorderCategories(ids: string[]): Promise<ActionResult> {
   const supabase = await createClient();
   const { error } = await supabase.rpc("reorder_categories", { ids });
-  if (error) return { error: "Couldn't save the order." };
+  if (error) return { error: (await getTranslations("categories.errors"))("order") };
 
   refresh();
   return { ok: true };

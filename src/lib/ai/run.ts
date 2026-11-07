@@ -2,6 +2,8 @@ import "server-only";
 import { createHash } from "node:crypto";
 import Anthropic from "@anthropic-ai/sdk";
 import type { z } from "zod";
+import { getLocale, getTranslations } from "next-intl/server";
+import { outputLanguageRule } from "@/lib/prompts/language";
 import { AI_DAILY_LIMIT } from "@/lib/ai-limits";
 import { dayRangeUtc } from "@/lib/dates";
 import type { getActionContext } from "@/lib/user";
@@ -57,11 +59,21 @@ export async function usageToday(ctx: Ctx): Promise<number> {
  * structured outputs are used for every model. Keep it this way unless that changes.
  * Order: same-day cache -> daily limit -> API -> validate -> log usage -> cache.
  */
-export async function runStructured<T>(ctx: Ctx, spec: PromptSpec<T>, userContent: string): Promise<AiResult<T>> {
+export async function runStructured<T>(
+  ctx: Ctx,
+  spec: PromptSpec<T>,
+  userContent: string,
+  opts: { locale?: string } = {},
+): Promise<AiResult<T>> {
+  // Output language = the user's UI locale (passed explicitly from after() jobs, else from the request).
+  const locale = opts.locale ?? (await getLocale());
+  const t = await getTranslations({ locale: locale === "ko" ? "ko" : "en", namespace: "ai.errors" });
   const anthropic = getClient();
-  if (!anthropic) return { ok: false, error: "AI features are unavailable (ANTHROPIC_API_KEY is not set)." };
+  if (!anthropic) return { ok: false, error: t("noKey") };
 
-  const inputHash = createHash("sha256").update(`${spec.kind}:${spec.version}:${spec.model}\n${userContent}`).digest("hex");
+  const system = `${spec.system}\n${outputLanguageRule(locale)}`;
+  // Locale is part of the key: the same input in another language is a different result.
+  const inputHash = createHash("sha256").update(`${spec.kind}:${spec.version}:${spec.model}:${locale}\n${userContent}`).digest("hex");
 
   const { data: cached } = await ctx.supabase
     .from("ai_cache")
@@ -76,7 +88,7 @@ export async function runStructured<T>(ctx: Ctx, spec: PromptSpec<T>, userConten
   }
 
   if ((await usageToday(ctx)) >= AI_DAILY_LIMIT) {
-    return { ok: false, error: `You've used today's AI limit (${AI_DAILY_LIMIT}). Try again tomorrow.` };
+    return { ok: false, error: t("limit", { limit: AI_DAILY_LIMIT }) };
   }
 
   let message: Anthropic.Message;
@@ -84,12 +96,12 @@ export async function runStructured<T>(ctx: Ctx, spec: PromptSpec<T>, userConten
     message = await anthropic.messages.create({
       model: spec.model,
       max_tokens: spec.maxTokens,
-      system: spec.system,
+      system,
       output_config: { format: { type: "json_schema", schema: spec.jsonSchema } },
       messages: [{ role: "user", content: userContent }],
     });
   } catch (e) {
-    return { ok: false, error: describeApiError(e) };
+    return { ok: false, error: t(apiErrorKey(e)) };
   }
 
   // Log usage even if parsing fails: the tokens were spent.
@@ -101,7 +113,7 @@ export async function runStructured<T>(ctx: Ctx, spec: PromptSpec<T>, userConten
   });
 
   if (message.stop_reason === "max_tokens") {
-    return { ok: false, error: "The AI response was cut off. Please try again." };
+    return { ok: false, error: t("truncated") };
   }
   const text = message.content
     .filter((b): b is Anthropic.TextBlock => b.type === "text")
@@ -111,7 +123,7 @@ export async function runStructured<T>(ctx: Ctx, spec: PromptSpec<T>, userConten
   if (!parsed.success) {
     // Paths only (no content) so failures can be diagnosed from server logs.
     console.warn(`[ai] ${spec.kind} response failed validation:`, parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; "));
-    return { ok: false, error: "The AI response had an unexpected format. Please try again." };
+    return { ok: false, error: t("format") };
   }
 
   await ctx.supabase
@@ -124,15 +136,15 @@ export async function runStructured<T>(ctx: Ctx, spec: PromptSpec<T>, userConten
   return { ok: true, data: parsed.data, cached: false };
 }
 
-function describeApiError(e: unknown): string {
+function apiErrorKey(e: unknown): "badKey" | "credit" | "rateLimit" | "down" | "failed" {
   if (e instanceof Anthropic.APIError) {
     const msg = String(e.message ?? "");
-    if (e.status === 401) return "The AI API key is invalid. Check ANTHROPIC_API_KEY in .env.local.";
-    if (e.status === 402 || /credit balance/i.test(msg)) return "The AI account is out of credit.";
-    if (e.status === 429) return "Too many AI requests. Please try again shortly.";
-    if (e.status === 529 || (e.status ?? 0) >= 500) return "The AI service isn't responding. Please try again shortly.";
+    if (e.status === 401) return "badKey";
+    if (e.status === 402 || /credit balance/i.test(msg)) return "credit";
+    if (e.status === 429) return "rateLimit";
+    if (e.status === 529 || (e.status ?? 0) >= 500) return "down";
   }
-  return "The AI request failed. Please try again shortly.";
+  return "failed";
 }
 
 /** Tolerant JSON parse (Rule 5): strips code fences / surrounding prose; returns undefined on failure. */

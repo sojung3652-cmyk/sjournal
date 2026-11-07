@@ -6,13 +6,15 @@ import { PageHeader } from "@/components/app/page-header";
 import { CategoryBadge } from "@/components/category-badge";
 import { plainPreview } from "@/components/day/note-list";
 import { Input } from "@/components/ui/input";
+import { getLocale, getTranslations } from "next-intl/server";
 import { formatDayShort } from "@/lib/dates";
 import { getUserContext } from "@/lib/user";
 
-export default function SearchPage({ searchParams }: PageProps<"/search">) {
+export default async function SearchPage({ searchParams }: PageProps<"/search">) {
+  const t = await getTranslations("search");
   return (
     <PageContainer>
-      <PageHeader title="Search" description="Searches note titles, content, and tags." />
+      <PageHeader title={t("title")} description={t("description")} />
       <Suspense fallback={<SearchForm defaultValue="" />}>
         <Results searchParams={searchParams} />
       </Suspense>
@@ -20,7 +22,8 @@ export default function SearchPage({ searchParams }: PageProps<"/search">) {
   );
 }
 
-function SearchForm({ defaultValue }: { defaultValue: string }) {
+async function SearchForm({ defaultValue }: { defaultValue: string }) {
+  const t = await getTranslations("search");
   return (
     <form action="/search" role="search" className="relative mb-6">
       <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -28,8 +31,8 @@ function SearchForm({ defaultValue }: { defaultValue: string }) {
         name="q"
         type="search"
         defaultValue={defaultValue}
-        aria-label="Search query"
-        placeholder="e.g. 역전파, derivatives"
+        aria-label={t("query")}
+        placeholder={t("placeholder")}
         className="h-10 pl-9"
         autoFocus
       />
@@ -58,6 +61,7 @@ async function Results({ searchParams }: { searchParams: PageProps<"/search">["s
   if (!q) return <SearchForm defaultValue="" />;
 
   const { supabase } = await getUserContext();
+  const [t, tc, locale] = await Promise.all([getTranslations("search"), getTranslations("common"), getLocale()]);
   const [{ data, error }, { data: categories }] = await Promise.all([
     supabase.rpc("search_notes", { q, max_results: 50 }),
     supabase.from("categories").select("id, name, color"),
@@ -68,12 +72,12 @@ async function Results({ searchParams }: { searchParams: PageProps<"/search">["s
     <>
       <SearchForm defaultValue={q} />
       {error ? (
-        <p className="text-sm text-destructive">Search failed.</p>
+        <p className="text-sm text-destructive">{t("failed")}</p>
       ) : !data?.length ? (
-        <p className="text-sm text-muted-foreground">No results for &lsquo;{q}&rsquo;.</p>
+        <p className="text-sm text-muted-foreground">{t("noResults", { q })}</p>
       ) : (
         <>
-          <p className="mb-3 text-xs text-muted-foreground">{data.length} {data.length === 1 ? "result" : "results"}</p>
+          <p className="mb-3 text-xs text-muted-foreground">{t("count", { count: data.length })}</p>
           <ul className="flex flex-col divide-y rounded-xl border bg-card">
             {data.map((n) => {
               // Generated RPC types mark these non-null; they can be null at runtime.
@@ -85,8 +89,8 @@ async function Results({ searchParams }: { searchParams: PageProps<"/search">["s
                 <li key={n.id}>
                   <Link href={`/notes/${n.id}`} className="flex flex-col gap-1.5 p-4 hover:bg-muted">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="truncate text-sm font-medium">{(n.title as string | null) || "Untitled"}</p>
-                      {logDate && <span className="shrink-0 text-xs text-muted-foreground">{formatDayShort(logDate)}</span>}
+                      <p className="truncate text-sm font-medium">{(n.title as string | null) || tc("untitled")}</p>
+                      {logDate && <span className="shrink-0 text-xs text-muted-foreground">{formatDayShort(logDate, locale)}</span>}
                     </div>
                     {n.content && <p className="line-clamp-2 text-xs text-muted-foreground">{snippet(n.content, q)}</p>}
                     {(cat || tags.length > 0) && (

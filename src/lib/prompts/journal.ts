@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { MODELS } from "@/lib/ai/models";
 import type { PromptSpec } from "@/lib/ai/run";
-import { LANGUAGE_RULE } from "./language";
 import { strList } from "./zod-tolerant";
 
 const lines = (min: number) => strList(400, 6, min);
@@ -14,7 +13,7 @@ export type Journal = z.infer<typeof journalSchema>;
 
 export const journalPrompt: PromptSpec<Journal> = {
   kind: "journal",
-  version: "3",
+  version: "4",
   model: MODELS.smart,
   maxTokens: 8000, // Sonnet thinks first; keep headroom
   system: [
@@ -23,7 +22,6 @@ export const journalPrompt: PromptSpec<Journal> = {
     "- Each entry is a one-sentence bullet, 2-4 per list. If nothing was difficult, return an empty list.",
     "- Do not invent facts that are not in the record. Respect the tone and feelings of the reflection.",
     "- Write in the learner's first person.",
-    LANGUAGE_RULE,
   ].join("\n"),
   jsonSchema: {
     type: "object",

@@ -2,6 +2,7 @@
 
 import { useOptimistic, useState, useTransition } from "react";
 import { Check } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { moveItem } from "@/app/(app)/board/actions";
 import { CategoryBadge } from "@/components/category-badge";
 import { Button } from "@/components/ui/button";
@@ -73,10 +74,11 @@ export function ItemChecklist({
 }
 
 export function InProgressCards({ items, categories }: { items: Item[]; categories: Cat[] }) {
+  const t = useTranslations("today");
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
   const byId = new Map(categories.map((c) => [c.id, c]));
-  if (items.length === 0) return <p className="text-sm text-muted-foreground">Nothing in progress.</p>;
+  if (items.length === 0) return <p className="text-sm text-muted-foreground">{t("emptyInProgress")}</p>;
   return (
     <ul className="grid gap-2 sm:grid-cols-2">
       {items.map((it) => {
@@ -97,7 +99,7 @@ export function InProgressCards({ items, categories }: { items: Item[]; categori
                 });
               }}
             >
-              <Check /> Done
+              <Check /> {t("done")}
             </Button>
           </li>
         );

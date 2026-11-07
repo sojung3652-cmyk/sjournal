@@ -1,17 +1,12 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getTranslations } from "next-intl/server";
+import { AuthCard } from "@/components/auth/auth-card";
 import { LoginForm } from "./login-form";
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const t = await getTranslations("common");
   return (
-    <main className="flex flex-1 items-center justify-center p-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>Study Journal</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <LoginForm />
-        </CardContent>
-      </Card>
-    </main>
+    <AuthCard title={t("appName")}>
+      <LoginForm />
+    </AuthCard>
   );
 }

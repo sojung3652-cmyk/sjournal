@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { getLocale, getTranslations } from "next-intl/server";
 import { CategoryBadge } from "@/components/category-badge";
+import { formatDate } from "@/lib/dates";
 import { Favicon, LinkThumb } from "./link-thumb";
 
 export type LinkCardData = {
@@ -28,7 +30,7 @@ export function hostOf(url: string) {
   }
 }
 
-export function LinkCard({
+export async function LinkCard({
   link,
   category,
   timezone,
@@ -39,7 +41,8 @@ export function LinkCard({
 }) {
   const lines = summaryLines(link.ai_summary);
   const pending = link.fetch_status === "pending";
-  const date = new Date(link.created_at).toLocaleDateString("en-US", { timeZone: timezone, month: "short", day: "numeric" });
+  const [t, locale] = await Promise.all([getTranslations("links"), getLocale()]);
+  const date = formatDate(link.created_at, timezone, locale, false);
   return (
     <Link href={`/links/${link.id}`} className="group flex flex-col overflow-hidden rounded-xl border bg-card hover:border-accent-strong" data-link-card>
       <LinkThumb imageUrl={link.image_url} faviconUrl={link.favicon_url} siteName={link.site_name ?? hostOf(link.url)} />
@@ -51,7 +54,7 @@ export function LinkCard({
         </div>
         <p className="line-clamp-2 text-sm font-medium break-words">{link.title ?? link.url}</p>
         {pending ? (
-          <p className="text-xs text-muted-foreground">Fetching preview and summary…</p>
+          <p className="text-xs text-muted-foreground">{t("fetching")}</p>
         ) : (
           lines.length > 0 && <p className="line-clamp-3 text-xs text-muted-foreground">{lines.join(" ")}</p>
         )}

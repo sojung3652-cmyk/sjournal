@@ -3,6 +3,7 @@
 import { useActionState, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Paperclip } from "lucide-react";
 import { attachFile, createFileNote, discardNote, quickAddText, type NoteResult } from "@/app/(app)/notes/actions";
 import { ClassifySuggestionPanel } from "@/components/ai/classify-suggestion";
@@ -15,6 +16,8 @@ const ACCEPT = "image/png,image/jpeg,image/webp,image/gif,image/heic,application
 
 /** One input for text, links, images and PDFs (paste or pick a file). */
 export function QuickAdd({ categories, aiEnabled }: { categories: { id: string; name: string }[]; aiEnabled: boolean }) {
+  const t = useTranslations("quickAdd");
+  const tc = useTranslations("common");
   const [dismissed, setDismissed] = useState<string | null>(null);
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
@@ -35,25 +38,25 @@ export function QuickAdd({ categories, aiEnabled }: { categories: { id: string; 
     let done = 0;
     for (const file of files) {
       if (file.size > MAX_BYTES) {
-        setFileMsg({ error: `${file.name}: files must be 20MB or smaller.` });
+        setFileMsg({ error: t("tooBig", { name: file.name }) });
         continue;
       }
       const created = await createFileNote(file.name, file.type);
       if (!created.ok || !created.noteId || !created.path) {
-        setFileMsg({ error: created.error ?? "Upload failed." });
+        setFileMsg({ error: created.error ?? t("uploadFailed") });
         continue;
       }
       const { error } = await supabase.storage.from("attachments").upload(created.path, file, { contentType: file.type });
       if (error) {
         await discardNote(created.noteId); // don't leave an empty note behind
-        setFileMsg({ error: `${file.name}: upload failed.` });
+        setFileMsg({ error: t("fileFailed", { name: file.name }) });
         continue;
       }
       const attached = await attachFile(created.noteId, created.path, file.type);
       if (attached.error) setFileMsg({ error: attached.error });
       else done++;
     }
-    if (done) setFileMsg({ ok: `Added ${done} ${done === 1 ? "file" : "files"}.` });
+    if (done) setFileMsg({ ok: t("added", { count: done }) });
     setUploading(false);
     if (fileRef.current) fileRef.current.value = "";
     router.refresh();
@@ -63,14 +66,14 @@ export function QuickAdd({ categories, aiEnabled }: { categories: { id: string; 
     <div className="flex flex-col gap-3">
     <form ref={formRef} action={action} className="flex flex-col gap-2">
       <label htmlFor="quick-add" className="sr-only">
-        Quick add
+        {t("label")}
       </label>
       <textarea
         id="quick-add"
         name="text"
         rows={3}
         maxLength={NOTE_CONTENT_MAX}
-        placeholder="Paste a memo, link, Claude chat, image, or PDF"
+        placeholder={t("placeholder")}
         className="w-full resize-y rounded-lg border border-input bg-card px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
         onPaste={(e) => {
           const files = [...e.clipboardData.files];
@@ -102,22 +105,24 @@ export function QuickAdd({ categories, aiEnabled }: { categories: { id: string; 
             className="inline-flex h-7 cursor-pointer items-center gap-1 rounded-lg px-2.5 text-[0.8rem] text-muted-foreground hover:bg-muted hover:text-foreground"
           >
             <Paperclip className="size-3.5" />
-            {uploading ? "Uploading" : "File"}
+            {uploading ? t("uploading") : t("file")}
           </label>
-          <span className="hidden text-xs text-muted-foreground sm:inline">Ctrl+Enter to add</span>
+          <span className="hidden text-xs text-muted-foreground sm:inline">{t("hint")}</span>
         </div>
         <Button type="submit" size="sm" variant="outline" disabled={pending || uploading}>
-          Add
+          {tc("add")}
         </Button>
       </div>
       {state.error && <p className="text-sm text-destructive">{state.error}</p>}
       {state.ok && state.linkId && (
         <p className="text-sm text-muted-foreground">
-          Saved to{" "}
-          <Link href={`/links/${state.linkId}`} className="underline underline-offset-4">
-            Links
-          </Link>
-          . The preview and summary will appear shortly.
+          {t.rich("savedToLinks", {
+            link: (chunks) => (
+              <Link href={`/links/${state.linkId}`} className="underline underline-offset-4">
+                {chunks}
+              </Link>
+            ),
+          })}
         </p>
       )}
       {fileMsg?.error && <p className="text-sm text-destructive">{fileMsg.error}</p>}

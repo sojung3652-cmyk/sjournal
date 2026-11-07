@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Globe } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
 /**
@@ -10,6 +11,7 @@ import { cn } from "@/lib/utils";
  */
 export function LinkThumb({ imageUrl, faviconUrl, siteName, className }: { imageUrl: string | null; faviconUrl: string | null; siteName: string | null; className?: string }) {
   // Remember which URL failed (not a boolean): the URL can arrive later, after a pending fetch.
+  const t = useTranslations("links");
   const [failedImg, setFailedImg] = useState<string | null>(null);
   const [failedFav, setFailedFav] = useState<string | null>(null);
   if (imageUrl && failedImg !== imageUrl) {
@@ -26,7 +28,7 @@ export function LinkThumb({ imageUrl, faviconUrl, siteName, className }: { image
       ) : (
         <Globe className="size-8 text-accent-strong" />
       )}
-      <span className="max-w-full truncate text-sm font-medium text-muted-foreground">{siteName ?? "Link"}</span>
+      <span className="max-w-full truncate text-sm font-medium text-muted-foreground">{siteName ?? t("fallback")}</span>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 "use server";
 
 import { refresh } from "next/cache";
+import { getTranslations } from "next-intl/server";
 import { clip, runStructured } from "@/lib/ai/run";
 import { ensureDailyLog, getDayData } from "@/lib/data/day";
 import { setNoteTags } from "@/lib/data/tags";
@@ -14,7 +15,7 @@ import { topPosition } from "@/lib/study";
 import { getActionContext } from "@/lib/user";
 
 type Fail = { ok: false; error: string };
-const LOGIN: Fail = { ok: false, error: "Please log in." };
+const fail = async (key: string): Promise<Fail> => ({ ok: false, error: (await getTranslations())(key as never) });
 const NOTE_CHARS = 6000; // per-note budget in prompts
 const DAY_CHARS = 16000; // total notes budget for a day
 
@@ -24,13 +25,13 @@ export type ClassifySuggestion = { categoryId: string | null; categoryName: stri
 
 export async function classifyNote(noteId: string): Promise<{ ok: true; suggestion: ClassifySuggestion } | Fail> {
   const ctx = await getActionContext();
-  if (!ctx) return LOGIN;
+  if (!ctx) return fail("errors.login");
   const [{ data: note }, { data: categories }] = await Promise.all([
     ctx.supabase.from("notes").select("title, content").eq("id", noteId).maybeSingle(),
     ctx.supabase.from("categories").select("id, name").order("sort_order"),
   ]);
-  if (!note) return { ok: false, error: "Note not found." };
-  if (!note.content.trim() && !note.title) return { ok: false, error: "There's nothing to classify." };
+  if (!note) return fail("ai.errors.noteNotFound");
+  if (!note.content.trim() && !note.title) return fail("ai.errors.nothingToClassify");
 
   const res = await runStructured(
     ctx,
@@ -48,10 +49,10 @@ export async function classifyNote(noteId: string): Promise<{ ok: true; suggesti
 /** User accepted (possibly edited) the suggestion: set category, add tags to existing ones. */
 export async function applyClassification(noteId: string, categoryId: string | null, tagsRaw: string): Promise<{ ok: true } | Fail> {
   const ctx = await getActionContext();
-  if (!ctx) return LOGIN;
+  if (!ctx) return fail("errors.login");
   if (categoryId) {
     const { error } = await ctx.supabase.from("notes").update({ category_id: categoryId }).eq("id", noteId);
-    if (error) return { ok: false, error: "Couldn't save the category." };
+    if (error) return fail("ai.errors.category");
   }
   const { data: current } = await ctx.supabase.from("note_tags").select("tags(name)").eq("note_id", noteId);
   const existing = (current ?? []).map((r) => r.tags?.name).filter((n): n is string => Boolean(n));
@@ -65,21 +66,21 @@ export async function applyClassification(noteId: string, categoryId: string | n
 
 export async function summarizeNote(noteId: string): Promise<{ ok: true; summary: NoteSummary } | Fail> {
   const ctx = await getActionContext();
-  if (!ctx) return LOGIN;
+  if (!ctx) return fail("errors.login");
   const { data: note } = await ctx.supabase.from("notes").select("title, content").eq("id", noteId).maybeSingle();
-  if (!note) return { ok: false, error: "Note not found." };
-  if (note.content.trim().length < 20) return { ok: false, error: "This note is too short to summarize." };
+  if (!note) return fail("ai.errors.noteNotFound");
+  if (note.content.trim().length < 20) return fail("ai.errors.tooShort");
   const res = await runStructured(ctx, summarizePrompt, buildSummarizeInput({ title: note.title, content: clip(note.content, NOTE_CHARS * 2) }));
   return res.ok ? { ok: true, summary: res.data } : res;
 }
 
 export async function saveSummary(noteId: string, summary: unknown): Promise<{ ok: true } | Fail> {
   const ctx = await getActionContext();
-  if (!ctx) return LOGIN;
+  if (!ctx) return fail("errors.login");
   const parsed = summarySchema.safeParse(summary);
-  if (!parsed.success) return { ok: false, error: "The summary is incomplete. Fill in the empty fields." };
+  if (!parsed.success) return fail("ai.errors.summaryIncomplete");
   const { error } = await ctx.supabase.from("notes").update({ ai_summary: parsed.data }).eq("id", noteId);
-  if (error) return { ok: false, error: "Couldn't save." };
+  if (error) return fail("errors.save");
   refresh();
   return { ok: true };
 }
@@ -101,11 +102,11 @@ function notesDigest(notes: { title: string | null; content: string }[], budget:
 
 export async function draftJournal(day: string): Promise<{ ok: true; journal: Journal } | Fail> {
   const ctx = await getActionContext();
-  if (!ctx) return LOGIN;
-  if (!isValidDay(day)) return { ok: false, error: "Invalid date." };
+  if (!ctx) return fail("errors.login");
+  if (!isValidDay(day)) return fail("errors.invalidDate");
   const { log, completed, notes } = await getDayData(ctx.supabase, day, ctx.timezone);
   if (!completed.length && !notes.length && !log?.reflection) {
-    return { ok: false, error: "Nothing recorded today yet. Add a note or complete an item first." };
+    return fail("ai.errors.nothingToday");
   }
   const input = [
     `Date: ${day}`,
@@ -119,13 +120,13 @@ export async function draftJournal(day: string): Promise<{ ok: true; journal: Jo
 
 export async function saveJournal(day: string, journal: unknown): Promise<{ ok: true } | Fail> {
   const ctx = await getActionContext();
-  if (!ctx) return LOGIN;
-  if (!isValidDay(day)) return { ok: false, error: "Invalid date." };
+  if (!ctx) return fail("errors.login");
+  if (!isValidDay(day)) return fail("errors.invalidDate");
   const parsed = journalSchema.safeParse(journal);
-  if (!parsed.success) return { ok: false, error: "Write at least one line for 'What I learned' and 'Tomorrow'." };
+  if (!parsed.success) return fail("ai.errors.journalIncomplete");
   const logId = await ensureDailyLog(ctx.supabase, ctx.userId, day);
   const { error } = await ctx.supabase.from("daily_logs").update({ ai_journal: parsed.data }).eq("id", logId ?? "");
-  if (error || !logId) return { ok: false, error: "Couldn't save." };
+  if (error || !logId) return fail("errors.save");
   refresh();
   return { ok: true };
 }
@@ -134,8 +135,8 @@ export async function saveJournal(day: string, journal: unknown): Promise<{ ok: 
 
 export async function draftGuide(day: string): Promise<{ ok: true; guide: Guide } | Fail> {
   const ctx = await getActionContext();
-  if (!ctx) return LOGIN;
-  if (!isValidDay(day)) return { ok: false, error: "Invalid date." };
+  if (!ctx) return fail("errors.login");
+  if (!isValidDay(day)) return fail("errors.invalidDate");
   const from = addDays(day, -6);
 
   const [{ data: logs }, { data: open }, { data: done }, { data: categories }] = await Promise.all([
@@ -164,7 +165,7 @@ export async function draftGuide(day: string): Promise<{ ok: true; guide: Guide 
         .join("\n");
     })
     .join("\n\n");
-  if (!history && !(open ?? []).length) return { ok: false, error: "No recent records to build a guide from." };
+  if (!history && !(open ?? []).length) return fail("ai.errors.noRecent");
 
   const label = { backlog: "Backlog", today: "Today", in_progress: "In progress" } as Record<string, string>;
   const input = [
@@ -181,13 +182,13 @@ export async function draftGuide(day: string): Promise<{ ok: true; guide: Guide 
 
 export async function saveGuide(day: string, guide: unknown): Promise<{ ok: true } | Fail> {
   const ctx = await getActionContext();
-  if (!ctx) return LOGIN;
-  if (!isValidDay(day)) return { ok: false, error: "Invalid date." };
+  if (!ctx) return fail("errors.login");
+  if (!isValidDay(day)) return fail("errors.invalidDate");
   const parsed = guideSchema.safeParse(guide);
-  if (!parsed.success) return { ok: false, error: "Add at least one task for tomorrow." };
+  if (!parsed.success) return fail("ai.errors.guideIncomplete");
   const logId = await ensureDailyLog(ctx.supabase, ctx.userId, day);
   const { error } = await ctx.supabase.from("daily_logs").update({ ai_guide: parsed.data }).eq("id", logId ?? "");
-  if (error || !logId) return { ok: false, error: "Couldn't save." };
+  if (error || !logId) return fail("errors.save");
   refresh();
   return { ok: true };
 }
@@ -195,16 +196,16 @@ export async function saveGuide(day: string, guide: unknown): Promise<{ ok: true
 /** Morning flow (PRD scenario A): add a suggested task to today's list. */
 export async function addGuideTask(title: string, categoryName: string | null): Promise<{ ok: true } | Fail> {
   const ctx = await getActionContext();
-  if (!ctx) return LOGIN;
+  if (!ctx) return fail("errors.login");
   const clean = title.trim().slice(0, 200);
-  if (!clean) return { ok: false, error: "The task is empty." };
+  if (!clean) return fail("ai.errors.emptyTask");
   const { data: cat } = categoryName
     ? await ctx.supabase.from("categories").select("id").eq("name", categoryName).maybeSingle()
     : { data: null };
   const { error } = await ctx.supabase
     .from("study_items")
     .insert({ title: clean, status: "today", category_id: cat?.id ?? null, position: topPosition() });
-  if (error) return { ok: false, error: "Couldn't add it." };
+  if (error) return fail("errors.add");
   refresh();
   return { ok: true };
 }

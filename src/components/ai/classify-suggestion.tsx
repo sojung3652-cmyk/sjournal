@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { applyClassification, classifyNote, type ClassifySuggestion } from "@/app/(app)/ai-actions";
 import { AiBox } from "@/components/ai/ai-box";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,8 @@ export function ClassifySuggestionPanel({
   enabled: boolean;
   onDone?: () => void;
 }) {
+  const t = useTranslations("ai");
+  const tc = useTranslations("common");
   const [suggestion, setSuggestion] = useState<ClassifySuggestion | null>(null);
   const [categoryId, setCategoryId] = useState<string>("");
   const [tags, setTags] = useState("");
@@ -50,9 +53,9 @@ export function ClassifySuggestionPanel({
   }, [noteId]);
 
   if (!enabled) {
-    return auto ? null : <p className="text-xs text-muted-foreground">AI features are unavailable (no API key).</p>;
+    return auto ? null : <p className="text-xs text-muted-foreground">{t("unavailable")}</p>;
   }
-  if (saved) return <p className="text-sm text-muted-foreground">Applied.</p>;
+  if (saved) return <p className="text-sm text-muted-foreground">{t("classify.applied")}</p>;
 
   if (!suggestion) {
     return (
@@ -60,22 +63,22 @@ export function ClassifySuggestionPanel({
         {!auto && (
           <div>
             <Button size="sm" variant="outline" onClick={run} disabled={loading}>
-              {loading ? "Classifying" : "Classify with AI"}
+              {loading ? t("classify.running") : t("classify.button")}
             </Button>
           </div>
         )}
-        {auto && loading && <p className="text-xs text-muted-foreground">AI is picking a category and tags</p>}
+        {auto && loading && <p className="text-xs text-muted-foreground">{t("classify.picking")}</p>}
         {error && <p className="text-sm text-destructive">{error}</p>}
       </div>
     );
   }
 
   return (
-    <AiBox title="Suggested category & tags">
+    <AiBox title={t("classify.title")}>
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
           <label htmlFor={`cls-cat-${noteId}`} className="text-xs font-medium">
-            Category
+            {tc("category")}
           </label>
           <select
             id={`cls-cat-${noteId}`}
@@ -83,7 +86,7 @@ export function ClassifySuggestionPanel({
             onChange={(e) => setCategoryId(e.target.value)}
             className="h-8 rounded-lg border border-ai-foreground/20 bg-card px-2 text-sm text-foreground"
           >
-            <option value="">None</option>
+            <option value="">{tc("none")}</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
@@ -93,7 +96,7 @@ export function ClassifySuggestionPanel({
         </div>
         <div className="flex flex-col gap-1.5">
           <label htmlFor={`cls-tags-${noteId}`} className="text-xs font-medium">
-            Tags
+            {tc("tags")}
           </label>
           <input
             id={`cls-tags-${noteId}`}
@@ -117,10 +120,10 @@ export function ClassifySuggestionPanel({
             })
           }
         >
-          Apply
+          {tc("apply")}
         </Button>
         <Button size="sm" variant="ghost" onClick={() => (onDone ? onDone() : setSuggestion(null))}>
-          Dismiss
+          {tc("dismiss")}
         </Button>
       </div>
     </AiBox>

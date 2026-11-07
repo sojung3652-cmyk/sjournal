@@ -1,13 +1,14 @@
 "use server";
 
 import { refresh } from "next/cache";
+import { getTranslations } from "next-intl/server";
 import { clip, runStructured } from "@/lib/ai/run";
 import { getCategoryRecords, parseRange, rangeWindow, type CategoryRecord } from "@/lib/data/category";
 import { categorySummaryPrompt, categorySummarySchema, type CategorySummary } from "@/lib/prompts/category-summary";
 import { getActionContext } from "@/lib/user";
 
 type Fail = { ok: false; error: string };
-const LOGIN: Fail = { ok: false, error: "Please log in." };
+const fail = async (key: string): Promise<Fail> => ({ ok: false, error: (await getTranslations())(key as never) });
 const BUDGET = 40_000; // characters of records sent to the model
 const PER_NOTE = 3_000;
 
@@ -27,14 +28,14 @@ export async function draftCategorySummary(
   rangeRaw: string,
 ): Promise<{ ok: true; summary: CategorySummary; omitted: number } | Fail> {
   const ctx = await getActionContext();
-  if (!ctx) return LOGIN;
+  if (!ctx) return fail("errors.login");
   const { data: category } = await ctx.supabase.from("categories").select("name").eq("id", categoryId).maybeSingle();
-  if (!category) return { ok: false, error: "Category not found." };
+  if (!category) return fail("categories.errors.notFound");
 
   const range = parseRange(rangeRaw);
   const window = rangeWindow(range, ctx.today);
   const records = await getCategoryRecords(ctx.supabase, categoryId, window, ctx.timezone);
-  if (!records.length) return { ok: false, error: "No records in this period to summarize." };
+  if (!records.length) return fail("categorySummary.errors.noRecords");
 
   // Newest first until the budget is used, then present oldest first (the timeline reads forward).
   const picked: string[] = [];
@@ -61,9 +62,9 @@ export async function draftCategorySummary(
 
 export async function saveCategorySummary(categoryId: string, rangeRaw: string, content: unknown): Promise<{ ok: true } | Fail> {
   const ctx = await getActionContext();
-  if (!ctx) return LOGIN;
+  if (!ctx) return fail("errors.login");
   const parsed = categorySummarySchema.safeParse(content);
-  if (!parsed.success) return { ok: false, error: "Some fields are empty. Fill them in or remove them." };
+  if (!parsed.success) return fail("categorySummary.errors.incomplete");
   const window = rangeWindow(parseRange(rangeRaw), ctx.today);
   const { error } = await ctx.supabase.from("category_summaries").insert({
     category_id: categoryId,
@@ -71,16 +72,16 @@ export async function saveCategorySummary(categoryId: string, rangeRaw: string, 
     period_end: window.end,
     content: parsed.data,
   });
-  if (error) return { ok: false, error: "Couldn't save." };
+  if (error) return fail("errors.save");
   refresh();
   return { ok: true };
 }
 
 export async function deleteCategorySummary(id: string): Promise<{ ok: true } | Fail> {
   const ctx = await getActionContext();
-  if (!ctx) return LOGIN;
+  if (!ctx) return fail("errors.login");
   const { error } = await ctx.supabase.from("category_summaries").delete().eq("id", id);
-  if (error) return { ok: false, error: "Couldn't delete." };
+  if (error) return fail("errors.delete");
   refresh();
   return { ok: true };
 }

@@ -1,14 +1,16 @@
 import { Suspense } from "react";
 import { PageContainer } from "@/components/app/page-container";
+import { getTranslations } from "next-intl/server";
 import { PageHeader } from "@/components/app/page-header";
 import { getUserContext } from "@/lib/user";
 import { Board } from "./board";
 
-export default function BoardPage() {
+export default async function BoardPage() {
+  const t = await getTranslations("board");
   return (
     <PageContainer wide>
-      <PageHeader title="Board" description="Drag a card to change its status." />
-      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading</p>}>
+      <PageHeader title={t("title")} description={t("description")} />
+      <Suspense fallback={<span />}>
         <BoardData />
       </Suspense>
     </PageContainer>

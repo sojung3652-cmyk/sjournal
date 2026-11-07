@@ -15,6 +15,7 @@ import {
   type DragStartEvent,
 } from "@dnd-kit/core";
 import { MoreHorizontal } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { CategoryBadge } from "@/components/category-badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,6 +35,9 @@ export type BoardCategory = { id: string; name: string; color: string };
 type Move = { id: string; status: StudyStatus };
 
 export function Board({ items, categories }: { items: BoardItem[]; categories: BoardCategory[] }) {
+  const t = useTranslations("board");
+  const ts = useTranslations("status");
+  const tc = useTranslations("common");
   const [filter, setFilter] = useState<string | "all" | "none">("all");
   const [mobileColumn, setMobileColumn] = useState<StudyStatus>("today");
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -82,9 +86,9 @@ export function Board({ items, categories }: { items: BoardItem[]; categories: B
     <div className="flex flex-col gap-5">
       <AddItemForm categories={categories} />
 
-      <div className="flex flex-wrap gap-2" role="group" aria-label="Category filter">
+      <div className="flex flex-wrap gap-2" role="group" aria-label={t("categoryFilter")}>
         <FilterChip active={filter === "all"} onClick={() => setFilter("all")}>
-          All
+          {tc("all")}
         </FilterChip>
         {categories.map((c) => (
           <FilterChip key={c.id} active={filter === c.id} onClick={() => setFilter(c.id)}>
@@ -92,7 +96,7 @@ export function Board({ items, categories }: { items: BoardItem[]; categories: B
           </FilterChip>
         ))}
         <FilterChip active={filter === "none"} onClick={() => setFilter("none")}>
-          Uncategorized
+          {tc("uncategorized")}
         </FilterChip>
       </div>
 
@@ -111,7 +115,7 @@ export function Board({ items, categories }: { items: BoardItem[]; categories: B
               mobileColumn === s.key && "bg-muted font-medium text-foreground",
             )}
           >
-            {s.label} {visible.filter((it) => it.status === s.key).length}
+            {ts(s.key)} {visible.filter((it) => it.status === s.key).length}
           </button>
         ))}
       </div>
@@ -122,7 +126,7 @@ export function Board({ items, categories }: { items: BoardItem[]; categories: B
             <Column
               key={s.key}
               status={s.key}
-              label={s.label}
+              label={ts(s.key)}
               hiddenOnMobile={mobileColumn !== s.key}
               items={visible.filter((it) => it.status === s.key).sort((a, b) => a.position - b.position)}
               categoryById={categoryById}
@@ -174,6 +178,7 @@ function Column({
   categories: BoardCategory[];
   onMove: (id: string, status: StudyStatus) => void;
 }) {
+  const tc = useTranslations("common");
   const { setNodeRef, isOver } = useDroppable({ id: status });
   return (
     <section
@@ -190,7 +195,7 @@ function Column({
         {label}
         <span className="text-xs font-normal text-muted-foreground">{items.length}</span>
       </h2>
-      {items.length === 0 && <p className="px-1 py-4 text-center text-xs text-muted-foreground">Empty</p>}
+      {items.length === 0 && <p className="px-1 py-4 text-center text-xs text-muted-foreground">{tc("empty")}</p>}
       {items.map((it) => (
         <DraggableCard
           key={it.id}
@@ -215,6 +220,9 @@ function DraggableCard({
   categories: BoardCategory[];
   onMove: (id: string, status: StudyStatus) => void;
 }) {
+  const t = useTranslations("board");
+  const ts = useTranslations("status");
+  const tc = useTranslations("common");
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: item.id });
   const [menuOpen, setMenuOpen] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -239,7 +247,7 @@ function DraggableCard({
           size="icon-sm"
           variant="ghost"
           className="m-1"
-          aria-label={`${item.title} menu`}
+          aria-label={t("menu", { title: item.title })}
           aria-expanded={menuOpen}
           onClick={() => {
             setMenuOpen((v) => !v);
@@ -254,7 +262,7 @@ function DraggableCard({
           <div className="flex flex-wrap gap-1">
             {STUDY_STATUSES.filter((s) => s.key !== item.status).map((s) => (
               <Button key={s.key} size="xs" variant="outline" onClick={() => onMove(item.id, s.key)}>
-                Move to {s.label}
+                {t("moveTo", { status: ts(s.key) })}
               </Button>
             ))}
           </div>
@@ -267,7 +275,7 @@ function DraggableCard({
                 setEditing(true);
               }}
             >
-              Edit
+              {tc("edit")}
             </Button>
             {confirmDelete ? (
               <Button
@@ -276,11 +284,11 @@ function DraggableCard({
                 disabled={pending}
                 onClick={() => startTransition(async () => void (await deleteItem(item.id)))}
               >
-                Confirm delete
+                {tc("confirmDelete")}
               </Button>
             ) : (
               <Button size="xs" variant="ghost" onClick={() => setConfirmDelete(true)}>
-                Delete
+                {tc("delete")}
               </Button>
             )}
           </div>
@@ -308,15 +316,16 @@ function CardBody({ item, category }: { item: BoardItem; category?: BoardCategor
 }
 
 function CategorySelect({ categories, defaultValue, id }: { categories: BoardCategory[]; defaultValue?: string | null; id: string }) {
+  const tc = useTranslations("common");
   return (
     <select
       id={id}
       name="category_id"
       defaultValue={defaultValue ?? ""}
-      aria-label="Category"
+      aria-label={tc("category")}
       className="h-8 rounded-lg border border-input bg-card px-2 text-sm"
     >
-      <option value="">No category</option>
+      <option value="">{tc("noCategory")}</option>
       {categories.map((c) => (
         <option key={c.id} value={c.id}>
           {c.name}
@@ -327,22 +336,25 @@ function CategorySelect({ categories, defaultValue, id }: { categories: BoardCat
 }
 
 function AddItemForm({ categories }: { categories: BoardCategory[] }) {
+  const t = useTranslations("board");
+  const ts = useTranslations("status");
+  const tc = useTranslations("common");
   const [state, action, pending] = useActionState<ItemResult, FormData>(createItem, {});
   return (
     <form action={action} className="flex flex-col gap-2 rounded-xl border bg-card p-3 sm:flex-row sm:items-center">
-      <Input name="title" placeholder="New study item" aria-label="New study item" maxLength={STUDY_TITLE_MAX} required className="sm:flex-1" />
+      <Input name="title" placeholder={t("newItem")} aria-label={t("newItem")} maxLength={STUDY_TITLE_MAX} required className="sm:flex-1" />
       <div className="flex gap-2">
         <CategorySelect categories={categories} id="new-item-category" />
-        <select name="status" defaultValue="backlog" aria-label="Column to add to" className="h-8 rounded-lg border border-input bg-card px-2 text-sm">
+        <select name="status" defaultValue="backlog" aria-label={t("column")} className="h-8 rounded-lg border border-input bg-card px-2 text-sm">
           {STUDY_STATUSES.filter((s) => s.key !== "done").map((s) => (
             <option key={s.key} value={s.key}>
-              {s.label}
+              {ts(s.key)}
             </option>
           ))}
         </select>
         {/* The one primary (pink) button on this screen. */}
         <Button type="submit" disabled={pending}>
-          Add
+          {tc("add")}
         </Button>
       </div>
       {state.error && <p className="text-sm text-destructive">{state.error}</p>}
@@ -351,6 +363,7 @@ function AddItemForm({ categories }: { categories: BoardCategory[] }) {
 }
 
 function EditItemForm({ item, categories, onDone }: { item: BoardItem; categories: BoardCategory[]; onDone: () => void }) {
+  const tc = useTranslations("common");
   const [state, action, pending] = useActionState<ItemResult, FormData>(updateItem, {});
   const done = useRef(onDone);
   useEffect(() => {
@@ -363,15 +376,15 @@ function EditItemForm({ item, categories, onDone }: { item: BoardItem; categorie
   return (
     <form action={action} className="flex flex-col gap-2 rounded-lg border border-accent-strong bg-card p-2">
       <input type="hidden" name="id" value={item.id} />
-      <Input name="title" defaultValue={item.title} aria-label="Title" maxLength={STUDY_TITLE_MAX} required autoFocus />
+      <Input name="title" defaultValue={item.title} aria-label={tc("title")} maxLength={STUDY_TITLE_MAX} required autoFocus />
       <CategorySelect categories={categories} defaultValue={item.category_id} id={`edit-${item.id}-category`} />
       {state.error && <p className="text-xs text-destructive">{state.error}</p>}
       <div className="flex gap-1">
         <Button type="submit" size="xs" variant="outline" disabled={pending}>
-          Save
+          {tc("save")}
         </Button>
         <Button type="button" size="xs" variant="ghost" onClick={onDone}>
-          Cancel
+          {tc("cancel")}
         </Button>
       </div>
     </form>

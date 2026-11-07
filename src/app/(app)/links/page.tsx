@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { Search } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import { PageContainer } from "@/components/app/page-container";
 import { PageHeader } from "@/components/app/page-header";
 import { CategoryBadge } from "@/components/category-badge";
@@ -11,11 +12,12 @@ import { Input } from "@/components/ui/input";
 import { getUserContext } from "@/lib/user";
 import { cn } from "@/lib/utils";
 
-export default function LinksPage({ searchParams }: PageProps<"/links">) {
+export default async function LinksPage({ searchParams }: PageProps<"/links">) {
+  const t = await getTranslations("links");
   return (
     <PageContainer wide>
-      <PageHeader title="Links" description="Saved pages with previews and AI summaries." />
-      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading</p>}>
+      <PageHeader title={t("title")} description={t("description")} />
+      <Suspense fallback={<span />}>
         <LinksContent searchParams={searchParams} />
       </Suspense>
     </PageContainer>
@@ -32,6 +34,7 @@ async function LinksContent({ searchParams }: { searchParams: PageProps<"/links"
   const q = (typeof sp.q === "string" ? sp.q : "").trim().slice(0, 100);
   const cat = typeof sp.category === "string" ? sp.category : "";
   const { supabase, timezone } = await getUserContext();
+  const [t, tc] = await Promise.all([getTranslations("links"), getTranslations("common")]);
 
   let query = supabase.from("links").select(LINK_COLS).order("created_at", { ascending: false }).limit(120);
   if (cat === "none") query = query.is("category_id", null);
@@ -61,9 +64,9 @@ async function LinksContent({ searchParams }: { searchParams: PageProps<"/links"
       <AddLinkForm categories={cats} />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap gap-2" role="group" aria-label="Category filter">
+        <div className="flex flex-wrap gap-2" role="group" aria-label={t("categoryFilter")}>
           <Chip href={href({ category: "" })} active={!cat}>
-            All
+            {tc("all")}
           </Chip>
           {cats.map((c) => (
             <Chip key={c.id} href={href({ category: c.id })} active={cat === c.id}>
@@ -71,19 +74,19 @@ async function LinksContent({ searchParams }: { searchParams: PageProps<"/links"
             </Chip>
           ))}
           <Chip href={href({ category: "none" })} active={cat === "none"}>
-            Uncategorized
+            {tc("uncategorized")}
           </Chip>
         </div>
         <form action="/links" role="search" className="relative sm:w-64">
           {cat && <input type="hidden" name="category" value={cat} />}
           <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input name="q" type="search" defaultValue={q} placeholder="Search links" aria-label="Search links" className="pl-8" />
+          <Input name="q" type="search" defaultValue={q} placeholder={t("search")} aria-label={t("search")} className="pl-8" />
         </form>
       </div>
 
       {list.length === 0 ? (
         <p className="py-8 text-center text-sm text-muted-foreground">
-          {q || cat ? "No links match." : "No links yet. Paste a URL above or into Quick add on Today."}
+          {q || cat ? t("noMatch") : t("empty")}
         </p>
       ) : (
         <LinkGrid>

@@ -11,14 +11,14 @@ export type Classification = z.infer<typeof classifySchema>;
 
 export const classifyPrompt: PromptSpec<Classification> = {
   kind: "classify",
-  version: "3",
+  version: "4",
   model: MODELS.fast,
   maxTokens: 1024,
   system: [
     "You organize a learner's study notes.",
     "Read the note, pick the single best category from the given list, and suggest 2-4 topic tags.",
     "- category: use a name exactly as it appears in the list, or null if none fits.",
-    "- tags: short nouns, no #, no duplicates. Use the note's language; proper nouns and technical terms may stay in their original form.",
+    "- tags: short nouns, no #, no duplicates. Proper nouns and technical terms may stay in their original form.",
   ].join("\n"),
   jsonSchema: {
     type: "object",

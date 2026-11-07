@@ -9,6 +9,7 @@ import { NoteList } from "@/components/day/note-list";
 import { QuickAdd } from "@/components/day/quick-add";
 import { getDayData, getStreak } from "@/lib/data/day";
 import { aiAvailable } from "@/lib/ai/run";
+import { getLocale, getTranslations } from "next-intl/server";
 import { addDays, formatDayLong } from "@/lib/dates";
 import { guideSchema } from "@/lib/prompts/guide";
 import { journalSchema } from "@/lib/prompts/journal";
@@ -17,7 +18,7 @@ import { getUserContext } from "@/lib/user";
 export default function TodayPage() {
   return (
     <PageContainer>
-      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading</p>}>
+      <Suspense fallback={<span />}>
         <Today />
       </Suspense>
     </PageContainer>
@@ -26,6 +27,7 @@ export default function TodayPage() {
 
 async function Today() {
   const { supabase, timezone, today } = await getUserContext();
+  const [t, locale] = await Promise.all([getTranslations("today"), getLocale()]);
   const [data, streak] = await Promise.all([getDayData(supabase, today, timezone), getStreak(supabase, today)]);
   const { categories, log, completed, inProgress, notes } = data;
 
@@ -46,16 +48,15 @@ async function Today() {
     <div className="flex flex-col gap-4">
       <header className="mb-2 flex flex-wrap items-end justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-semibold">Today</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{formatDayLong(today)}</p>
+          <h1 className="text-2xl font-semibold">{t("title")}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{formatDayLong(today, locale)}</p>
         </div>
-        <p className="text-sm" aria-label="streak">
-          <span className="font-semibold text-accent-strong">{streak.days}-day</span>{" "}
-          <span className="text-muted-foreground">streak</span>
+        <p className="text-sm font-medium text-accent-strong" title={t("streakLabel")}>
+          {t("streak", { days: streak.days })}
         </p>
       </header>
 
-      <Section title="Quick add">
+      <Section title={t("quickAdd")}>
         <QuickAdd categories={categories} aiEnabled={aiEnabled} />
       </Section>
 
@@ -67,32 +68,32 @@ async function Today() {
       )}
 
       <Section
-        title="Today's tasks"
+        title={t("tasks")}
         aside={
           <Link href="/board" className="text-xs text-muted-foreground hover:text-foreground">
-            Add from board
+            {t("addFromBoard")}
           </Link>
         }
       >
-        <ItemChecklist items={checklist} categories={categories} empty="Nothing planned for today. Move items to the Today column on the board." />
+        <ItemChecklist items={checklist} categories={categories} empty={t("emptyTasks")} />
       </Section>
 
-      <Section title="In progress">
+      <Section title={t("inProgress")}>
         <InProgressCards items={inProgress} categories={categories} />
       </Section>
 
       <Section
-        title="Today's notes"
+        title={t("notes")}
         aside={
           <Link href={`/day/${today}`} className="text-xs text-muted-foreground hover:text-foreground">
-            Daily page
+            {t("dailyPage")}
           </Link>
         }
       >
         <NoteList notes={notes} categories={categories} timezone={timezone} />
       </Section>
 
-      <Section title="Wrap up the day">
+      <Section title={t("wrapUpTitle")}>
         <DayClose day={today} reflection={log?.reflection ?? null}>
           <JournalDraft day={today} saved={savedJournal.success ? savedJournal.data : null} enabled={aiEnabled} />
           <GuideDraft day={today} saved={savedGuide.success ? savedGuide.data : null} enabled={aiEnabled} />

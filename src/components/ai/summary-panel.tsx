@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { saveSummary, summarizeNote } from "@/app/(app)/ai-actions";
 import { AiBox } from "@/components/ai/ai-box";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,8 @@ import type { NoteSummary } from "@/lib/prompts/summarize";
 
 /** Note summary: core concepts 3–5 + one line. Draft is editable; saved to notes.ai_summary. */
 export function SummaryPanel({ noteId, saved, enabled }: { noteId: string; saved: NoteSummary | null; enabled: boolean }) {
+  const t = useTranslations("ai");
+  const tc = useTranslations("common");
   const [draft, setDraft] = useState<NoteSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, startLoading] = useTransition();
@@ -26,10 +29,10 @@ export function SummaryPanel({ noteId, saved, enabled }: { noteId: string; saved
     const setConcept = (i: number, key: "name" | "explanation", v: string) =>
       setDraft({ ...draft, concepts: draft.concepts.map((c, j) => (j === i ? { ...c, [key]: v } : c)) });
     return (
-      <AiBox title="Note summary">
+      <AiBox title={t("summary.title")}>
         <div className="flex flex-col gap-1.5">
           <label htmlFor="sum-one" className="text-xs font-medium">
-            One-line summary
+            {t("summary.oneLine")}
           </label>
           <input
             id="sum-one"
@@ -38,18 +41,18 @@ export function SummaryPanel({ noteId, saved, enabled }: { noteId: string; saved
             className="h-8 rounded-lg border border-ai-foreground/20 bg-card px-2.5 text-sm text-foreground"
           />
         </div>
-        <p className="text-xs font-medium">Key concepts</p>
+        <p className="text-xs font-medium">{t("summary.concepts")}</p>
         <ul className="flex flex-col gap-2">
           {draft.concepts.map((c, i) => (
             <li key={i} className="flex flex-col gap-1">
               <input
-                aria-label={`Concept ${i + 1} name`}
+                aria-label={t("summary.conceptName", { n: i + 1 })}
                 value={c.name}
                 onChange={(e) => setConcept(i, "name", e.target.value)}
                 className="h-8 rounded-lg border border-ai-foreground/20 bg-card px-2.5 text-sm font-medium text-foreground"
               />
               <textarea
-                aria-label={`Concept ${i + 1} explanation`}
+                aria-label={t("summary.conceptExplanation", { n: i + 1 })}
                 rows={2}
                 value={c.explanation}
                 onChange={(e) => setConcept(i, "explanation", e.target.value)}
@@ -72,10 +75,10 @@ export function SummaryPanel({ noteId, saved, enabled }: { noteId: string; saved
               })
             }
           >
-            Save summary
+            {t("summary.save")}
           </Button>
           <Button size="sm" variant="ghost" onClick={() => setDraft(null)}>
-            Cancel
+            {tc("cancel")}
           </Button>
         </div>
       </AiBox>
@@ -85,7 +88,7 @@ export function SummaryPanel({ noteId, saved, enabled }: { noteId: string; saved
   return (
     <div className="flex flex-col gap-2">
       {saved && (
-        <AiBox title="Note summary">
+        <AiBox title={t("summary.title")}>
           <p className="text-sm font-medium">{saved.one_line}</p>
           <ul className="flex flex-col gap-1.5 text-sm">
             {saved.concepts.map((c, i) => (
@@ -99,11 +102,11 @@ export function SummaryPanel({ noteId, saved, enabled }: { noteId: string; saved
       {enabled ? (
         <div>
           <Button size="sm" variant="outline" onClick={generate} disabled={loading}>
-            {loading ? "Summarizing" : saved ? "Summarize again" : "Summarize with AI"}
+            {loading ? t("summary.running") : saved ? t("summary.again") : t("summary.button")}
           </Button>
         </div>
       ) : (
-        <p className="text-xs text-muted-foreground">AI features are unavailable (no API key).</p>
+        <p className="text-xs text-muted-foreground">{t("unavailable")}</p>
       )}
       {error && <p className="text-sm text-destructive">{error}</p>}
     </div>

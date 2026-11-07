@@ -5,23 +5,23 @@ import { PageContainer } from "@/components/app/page-container";
 import { PageHeader } from "@/components/app/page-header";
 import { buttonVariants } from "@/components/ui/button";
 import { categoryHex } from "@/lib/categories";
-import { addDays } from "@/lib/dates";
+import { getLocale, getTranslations } from "next-intl/server";
+import { addDays, formatMonth, weekdayNames } from "@/lib/dates";
 import { getUserContext } from "@/lib/user";
 import { cn } from "@/lib/utils";
 
-export default function CalendarPage({ searchParams }: PageProps<"/calendar">) {
+export default async function CalendarPage({ searchParams }: PageProps<"/calendar">) {
+  const t = await getTranslations("calendar");
   return (
     <PageContainer>
-      <PageHeader title="Calendar" description="Days with activity show a dot in each subject's color." />
-      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading</p>}>
+      <PageHeader title={t("title")} description={t("description")} />
+      <Suspense fallback={<span />}>
         <Month searchParams={searchParams} />
       </Suspense>
     </PageContainer>
   );
 }
 
-const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const MAX_DOTS = 3;
 
 function parseMonth(raw: unknown, fallback: string): string {
@@ -36,6 +36,7 @@ function shiftMonth(month: string, delta: number): string {
 
 async function Month({ searchParams }: { searchParams: PageProps<"/calendar">["searchParams"] }) {
   const { supabase, today } = await getUserContext();
+  const [t, locale] = await Promise.all([getTranslations("calendar"), getLocale()]);
   const month = parseMonth((await searchParams).month, today.slice(0, 7));
   const first = `${month}-01`;
   const last = addDays(`${shiftMonth(month, 1)}-01`, -1);
@@ -54,26 +55,25 @@ async function Month({ searchParams }: { searchParams: PageProps<"/calendar">["s
   const gridStart = addDays(first, -startOffset);
   const totalCells = Math.ceil((startOffset + Number(last.slice(8))) / 7) * 7;
   const cells = Array.from({ length: totalCells }, (_, i) => addDays(gridStart, i));
-  const [y, m] = month.split("-");
   const nav = buttonVariants({ variant: "ghost", size: "icon-sm" });
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <Link href={`/calendar?month=${shiftMonth(month, -1)}`} className={nav} aria-label="Previous month">
+        <Link href={`/calendar?month=${shiftMonth(month, -1)}`} className={nav} aria-label={t("prev")}>
           <ChevronLeft />
         </Link>
         <h2 className="text-base font-medium">
-          {MONTHS[Number(m) - 1]} {y}
+          {formatMonth(month, locale)}
         </h2>
-        <Link href={`/calendar?month=${shiftMonth(month, 1)}`} className={nav} aria-label="Next month">
+        <Link href={`/calendar?month=${shiftMonth(month, 1)}`} className={nav} aria-label={t("next")}>
           <ChevronRight />
         </Link>
       </div>
 
       <div className="overflow-hidden rounded-xl border bg-card">
         <div className="grid grid-cols-7 border-b text-center text-xs text-muted-foreground">
-          {WEEKDAYS.map((w) => (
+          {weekdayNames(locale).map((w) => (
             <div key={w} className="py-2">
               {w}
             </div>
@@ -95,7 +95,7 @@ async function Month({ searchParams }: { searchParams: PageProps<"/calendar">["s
                 href={`/day/${day}`}
                 data-day={day}
                 data-recorded={recorded || undefined}
-                aria-label={`${day}${recorded ? ` recorded${names ? ` (${names})` : ""}` : ""}`}
+                aria-label={recorded ? (names ? t("recordedWith", { day, names }) : t("recorded", { day })) : day}
                 className={cn(
                   "flex aspect-square flex-col items-center gap-1 border-t p-1 text-sm hover:bg-muted sm:aspect-auto sm:h-20 sm:items-start sm:p-2",
                   i % 7 !== 0 && "border-l",

@@ -2,13 +2,8 @@ export const NOTE_CONTENT_MAX = 50_000;
 export const TAG_MAX = 30;
 export const TAGS_PER_NOTE_MAX = 10;
 
-export const SOURCE_LABEL: Record<string, string> = {
-  text: "Memo",
-  link: "Link",
-  image: "Image",
-  pdf: "PDF",
-  claude_chat: "Chat",
-};
+// Source labels: messages source.<type>.
+export const SOURCE_TYPES = ["text", "link", "image", "pdf", "claude_chat"] as const;
 
 export function isUrl(text: string): boolean {
   if (/\s/.test(text)) return false;

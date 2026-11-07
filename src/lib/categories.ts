@@ -2,14 +2,14 @@
 // constraint on these 8 keys); the UI maps key -> colors so every screen uses
 // the same color per category. Same colors in light and dark mode.
 export const CATEGORY_COLORS = [
-  { key: "rose", label: "Dusty rose", hex: "#E8B4BC" },
-  { key: "sage", label: "Sage", hex: "#B8C9B0" },
-  { key: "dusty_blue", label: "Dusty blue", hex: "#AFC3D6" },
-  { key: "lavender", label: "Lavender", hex: "#C9B8D9" },
-  { key: "butter", label: "Butter", hex: "#EBD9A8" },
-  { key: "peach", label: "Peach", hex: "#EFC2A6" },
-  { key: "mint", label: "Mint", hex: "#B5D6CF" },
-  { key: "greige", label: "Greige", hex: "#CFC4B8" },
+  { key: "rose", hex: "#E8B4BC" },
+  { key: "sage", hex: "#B8C9B0" },
+  { key: "dusty_blue", hex: "#AFC3D6" },
+  { key: "lavender", hex: "#C9B8D9" },
+  { key: "butter", hex: "#EBD9A8" },
+  { key: "peach", hex: "#EFC2A6" },
+  { key: "mint", hex: "#B5D6CF" },
+  { key: "greige", hex: "#CFC4B8" },
 ] as const;
 
 export type CategoryColor = (typeof CATEGORY_COLORS)[number]["key"];

@@ -1,12 +1,16 @@
+"use client";
+
 import type { ReactNode } from "react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
 /** Everything AI-generated is shown on ai-surface with an 'AI draft' label (PRD 6). */
 export function AiBox({ title, children, className }: { title?: string; children: ReactNode; className?: string }) {
+  const t = useTranslations("ai");
   return (
     <div className={cn("flex flex-col gap-3 rounded-xl bg-ai-surface p-4 text-ai-foreground", className)} data-ai-draft>
       <div className="flex items-center gap-2">
-        <span className="rounded-full border border-ai-foreground/30 px-2 py-0.5 text-[11px] font-medium">AI draft</span>
+        <span className="rounded-full border border-ai-foreground/30 px-2 py-0.5 text-[11px] font-medium">{t("draft")}</span>
         {title && <span className="text-sm font-medium">{title}</span>}
       </div>
       {children}
@@ -28,10 +32,11 @@ export function LinesField({
   onChange: (v: string[]) => void;
   rows?: number;
 }) {
+  const t = useTranslations("ai");
   return (
     <div className="flex flex-col gap-1.5">
       <label htmlFor={id} className="text-xs font-medium">
-        {label} <span className="font-normal opacity-70">(one per line)</span>
+        {label} <span className="font-normal opacity-70">{t("onePerLine")}</span>
       </label>
       <textarea
         id={id}

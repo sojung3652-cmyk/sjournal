@@ -1,5 +1,6 @@
 import "server-only";
 import { after } from "next/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { ensureDailyLog } from "@/lib/data/day";
 import type { getActionContext } from "@/lib/user";
 import { processLink } from "./process";
@@ -16,7 +17,8 @@ export async function createLink(ctx: Ctx, rawUrl: string, categoryId: string | 
   try {
     url = checkUrl(rawUrl.trim()).toString();
   } catch (e) {
-    return { ok: false, error: e instanceof UnsafeUrlError ? "That address can't be saved (only public http/https links)." : "Invalid link." };
+    const t = await getTranslations("links.errors");
+    return { ok: false, error: e instanceof UnsafeUrlError ? t("unsafe") : t("invalid") };
   }
   const dailyLogId = await ensureDailyLog(ctx.supabase, ctx.userId, ctx.today);
   const { data, error } = await ctx.supabase
@@ -24,8 +26,9 @@ export async function createLink(ctx: Ctx, rawUrl: string, categoryId: string | 
     .insert({ url, category_id: categoryId, daily_log_id: dailyLogId, fetch_status: "pending" })
     .select("id")
     .single();
-  if (error) return { ok: false, error: "Couldn't save the link." };
+  if (error) return { ok: false, error: (await getTranslations())("links.errors.save") };
 
-  after(() => processLink(ctx, data.id));
+  const locale = await getLocale(); // captured now: after() runs once the response is sent
+  after(() => processLink(ctx, data.id, locale));
   return { ok: true, id: data.id };
 }

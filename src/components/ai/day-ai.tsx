@@ -2,36 +2,44 @@
 
 import { useState, useTransition } from "react";
 import { Plus } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { addGuideTask, draftGuide, draftJournal, saveGuide, saveJournal } from "@/app/(app)/ai-actions";
 import { AiBox, AiList, LinesField, cleanLines } from "@/components/ai/ai-box";
 import { Button } from "@/components/ui/button";
 import type { Guide } from "@/lib/prompts/guide";
 import type { Journal } from "@/lib/prompts/journal";
 
-const NO_KEY = <p className="text-xs text-muted-foreground">AI features are unavailable (no API key).</p>;
+function NoKey() {
+  const t = useTranslations("ai");
+  return <p className="text-xs text-muted-foreground">{t("unavailable")}</p>;
+}
 
 export function JournalView({ journal }: { journal: Journal }) {
+  const t = useTranslations("ai.journal");
   return (
-    <AiBox title="Journal">
-      <AiList label="What I learned" items={journal.learned} />
-      <AiList label="What was hard" items={journal.difficult} />
-      <AiList label="Tomorrow" items={journal.tomorrow} />
+    <AiBox title={t("title")}>
+      <AiList label={t("learned")} items={journal.learned} />
+      <AiList label={t("difficult")} items={journal.difficult} />
+      <AiList label={t("tomorrow")} items={journal.tomorrow} />
     </AiBox>
   );
 }
 
 export function GuideView({ guide }: { guide: Guide }) {
+  const t = useTranslations("ai.guide");
   return (
-    <AiBox title="Next-day guide">
-      <AiList label="Tasks for tomorrow" items={guide.tasks.map((t) => (t.category ? `${t.title} (${t.category})` : t.title))} />
-      <AiList label="Concepts to review" items={guide.review} />
-      <AiList label="Tips for where you got stuck" items={guide.tips} />
+    <AiBox title={t("title")}>
+      <AiList label={t("tasks")} items={guide.tasks.map((task) => (task.category ? `${task.title} (${task.category})` : task.title))} />
+      <AiList label={t("review")} items={guide.review} />
+      <AiList label={t("tips")} items={guide.tips} />
     </AiBox>
   );
 }
 
 /** Day close: journal draft (learned / difficult / tomorrow) -> edit -> save to daily_logs.ai_journal. */
 export function JournalDraft({ day, saved, enabled }: { day: string; saved: Journal | null; enabled: boolean }) {
+  const t = useTranslations("ai.journal");
+  const tc = useTranslations("common");
   const [draft, setDraft] = useState<Journal | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, startLoading] = useTransition();
@@ -39,10 +47,10 @@ export function JournalDraft({ day, saved, enabled }: { day: string; saved: Jour
 
   if (draft) {
     return (
-      <AiBox title="Journal draft">
-        <LinesField id="j-learned" label="What I learned" value={draft.learned} onChange={(v) => setDraft({ ...draft, learned: v })} />
-        <LinesField id="j-difficult" label="What was hard" value={draft.difficult} onChange={(v) => setDraft({ ...draft, difficult: v })} />
-        <LinesField id="j-tomorrow" label="Tomorrow" value={draft.tomorrow} onChange={(v) => setDraft({ ...draft, tomorrow: v })} />
+      <AiBox title={t("draftTitle")}>
+        <LinesField id="j-learned" label={t("learned")} value={draft.learned} onChange={(v) => setDraft({ ...draft, learned: v })} />
+        <LinesField id="j-difficult" label={t("difficult")} value={draft.difficult} onChange={(v) => setDraft({ ...draft, difficult: v })} />
+        <LinesField id="j-tomorrow" label={t("tomorrow")} value={draft.tomorrow} onChange={(v) => setDraft({ ...draft, tomorrow: v })} />
         {error && <p className="text-sm text-destructive">{error}</p>}
         <div className="flex gap-2">
           <Button
@@ -58,10 +66,10 @@ export function JournalDraft({ day, saved, enabled }: { day: string; saved: Jour
               })
             }
           >
-            Save journal
+            {t("save")}
           </Button>
           <Button size="sm" variant="ghost" onClick={() => setDraft(null)}>
-            Cancel
+            {tc("cancel")}
           </Button>
         </div>
       </AiBox>
@@ -86,11 +94,11 @@ export function JournalDraft({ day, saved, enabled }: { day: string; saved: Jour
               });
             }}
           >
-            {loading ? "Writing journal" : saved ? "Redo journal" : "Draft journal with AI"}
+            {loading ? t("running") : saved ? t("again") : t("button")}
           </Button>
         </div>
       ) : (
-        NO_KEY
+        <NoKey />
       )}
       {error && <p className="text-sm text-destructive">{error}</p>}
     </div>
@@ -99,6 +107,8 @@ export function JournalDraft({ day, saved, enabled }: { day: string; saved: Jour
 
 /** Next-day guide: tasks 3 + review concepts + tips -> edit -> save to daily_logs.ai_guide. */
 export function GuideDraft({ day, saved, enabled }: { day: string; saved: Guide | null; enabled: boolean }) {
+  const t = useTranslations("ai.guide");
+  const tc = useTranslations("common");
   const [draft, setDraft] = useState<Guide | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, startLoading] = useTransition();
@@ -106,21 +116,21 @@ export function GuideDraft({ day, saved, enabled }: { day: string; saved: Guide 
 
   if (draft) {
     return (
-      <AiBox title="Next-day guide draft">
+      <AiBox title={t("draftTitle")}>
         <div className="flex flex-col gap-1.5">
-          <p className="text-xs font-medium">Tasks for tomorrow</p>
-          {draft.tasks.map((t, i) => (
+          <p className="text-xs font-medium">{t("tasks")}</p>
+          {draft.tasks.map((task, i) => (
             <input
               key={i}
-              aria-label={`Task for tomorrow ${i + 1}`}
-              value={t.title}
+              aria-label={t("task", { n: i + 1 })}
+              value={task.title}
               onChange={(e) => setDraft({ ...draft, tasks: draft.tasks.map((x, j) => (j === i ? { ...x, title: e.target.value } : x)) })}
               className="h-8 rounded-lg border border-ai-foreground/20 bg-card px-2.5 text-sm text-foreground"
             />
           ))}
         </div>
-        <LinesField id="g-review" label="Concepts to review" value={draft.review} onChange={(v) => setDraft({ ...draft, review: v })} />
-        <LinesField id="g-tips" label="Tips for where you got stuck" value={draft.tips} onChange={(v) => setDraft({ ...draft, tips: v })} />
+        <LinesField id="g-review" label={t("review")} value={draft.review} onChange={(v) => setDraft({ ...draft, review: v })} />
+        <LinesField id="g-tips" label={t("tips")} value={draft.tips} onChange={(v) => setDraft({ ...draft, tips: v })} />
         {error && <p className="text-sm text-destructive">{error}</p>}
         <div className="flex gap-2">
           <Button
@@ -130,7 +140,7 @@ export function GuideDraft({ day, saved, enabled }: { day: string; saved: Guide 
             onClick={() =>
               startSaving(async () => {
                 const clean: Guide = {
-                  tasks: draft.tasks.map((t) => ({ ...t, title: t.title.trim() })).filter((t) => t.title),
+                  tasks: draft.tasks.map((task) => ({ ...task, title: task.title.trim() })).filter((task) => task.title),
                   review: cleanLines(draft.review),
                   tips: cleanLines(draft.tips),
                 };
@@ -140,10 +150,10 @@ export function GuideDraft({ day, saved, enabled }: { day: string; saved: Guide 
               })
             }
           >
-            Save guide
+            {t("save")}
           </Button>
           <Button size="sm" variant="ghost" onClick={() => setDraft(null)}>
-            Cancel
+            {tc("cancel")}
           </Button>
         </div>
       </AiBox>
@@ -168,11 +178,11 @@ export function GuideDraft({ day, saved, enabled }: { day: string; saved: Guide 
               });
             }}
           >
-            {loading ? "Creating guide" : saved ? "Redo guide" : "Create next-day guide"}
+            {loading ? t("running") : saved ? t("again") : t("button")}
           </Button>
         </div>
       ) : (
-        NO_KEY
+        <NoKey />
       )}
       {error && <p className="text-sm text-destructive">{error}</p>}
     </div>
@@ -181,23 +191,24 @@ export function GuideDraft({ day, saved, enabled }: { day: string; saved: Guide 
 
 /** Morning (PRD scenario A): yesterday's suggested tasks, one click to add to today. */
 export function SuggestedTasks({ guide, existingTitles }: { guide: Guide; existingTitles: string[] }) {
+  const t = useTranslations("ai.guide");
   const [added, setAdded] = useState<Set<number>>(new Set());
   const [error, setError] = useState<string | null>(null);
   const [, start] = useTransition();
   const existing = new Set(existingTitles);
   return (
-    <AiBox title="Suggested for today (from yesterday)">
+    <AiBox title={t("suggested")}>
       <ul className="flex flex-col gap-2">
-        {guide.tasks.map((t, i) => {
-          const done = added.has(i) || existing.has(t.title);
+        {guide.tasks.map((task, i) => {
+          const done = added.has(i) || existing.has(task.title);
           return (
             <li key={i} className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-sm">
-                  {t.title}
-                  {t.category && <span className="opacity-70"> · {t.category}</span>}
+                  {task.title}
+                  {task.category && <span className="opacity-70"> · {task.category}</span>}
                 </p>
-                {t.reason && <p className="text-xs opacity-80">{t.reason}</p>}
+                {task.reason && <p className="text-xs opacity-80">{task.reason}</p>}
               </div>
               <Button
                 size="xs"
@@ -205,15 +216,15 @@ export function SuggestedTasks({ guide, existingTitles }: { guide: Guide; existi
                 disabled={done}
                 onClick={() =>
                   start(async () => {
-                    const res = await addGuideTask(t.title, t.category);
+                    const res = await addGuideTask(task.title, task.category);
                     if (!res.ok) return setError(res.error);
                     setAdded((s) => new Set(s).add(i));
                   })
                 }
               >
-                {done ? "Added" : (
+                {done ? t("added") : (
                   <>
-                    <Plus /> Add to today
+                    <Plus /> {t("addToday")}
                   </>
                 )}
               </Button>

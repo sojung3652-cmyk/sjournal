@@ -1,13 +1,13 @@
 import { CalendarDays, Columns3, Home, Link2, Settings, Tags } from "lucide-react";
 
-// `tab: false` = not in the mobile bottom tab bar (Settings lives in the mobile top bar).
+// `key` = messages nav.<key>. `tab: false` = not in the mobile bottom tab bar (Settings is in the top bar).
 export const NAV_ITEMS = [
-  { href: "/", label: "Today", icon: Home, tab: true },
-  { href: "/board", label: "Board", icon: Columns3, tab: true },
-  { href: "/calendar", label: "Calendar", icon: CalendarDays, tab: true },
-  { href: "/categories", label: "Categories", icon: Tags, tab: true },
-  { href: "/links", label: "Links", icon: Link2, tab: true },
-  { href: "/settings", label: "Settings", icon: Settings, tab: false },
+  { href: "/", key: "today", icon: Home, tab: true },
+  { href: "/board", key: "board", icon: Columns3, tab: true },
+  { href: "/calendar", key: "calendar", icon: CalendarDays, tab: true },
+  { href: "/categories", key: "categories", icon: Tags, tab: true },
+  { href: "/links", key: "links", icon: Link2, tab: true },
+  { href: "/settings", key: "settings", icon: Settings, tab: false },
 ] as const;
 
 export const TAB_ITEMS = NAV_ITEMS.filter((i) => i.tab);

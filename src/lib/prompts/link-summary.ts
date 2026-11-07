@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { MODELS } from "@/lib/ai/models";
 import type { PromptSpec } from "@/lib/ai/run";
-import { LEARNER_LANGUAGE_RULE } from "./language";
 import { strList } from "./zod-tolerant";
 
 export const linkSummarySchema = z.object({
@@ -13,7 +12,7 @@ export type LinkSummary = z.infer<typeof linkSummarySchema>;
 
 export const linkSummaryPrompt: PromptSpec<LinkSummary> = {
   kind: "link_summary",
-  version: "1",
+  version: "2",
   model: MODELS.fast,
   maxTokens: 1500,
   system: [
@@ -22,7 +21,6 @@ export const linkSummaryPrompt: PromptSpec<LinkSummary> = {
     "- keywords: exactly 3 key terms.",
     "- category: the best match from the given category list (exact name), or null if none fits.",
     "- If only metadata (title/description) is available, summarize from that and do not guess beyond it.",
-    LEARNER_LANGUAGE_RULE,
   ].join("\n"),
   jsonSchema: {
     type: "object",

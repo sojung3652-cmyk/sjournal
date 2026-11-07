@@ -11,6 +11,7 @@ import { LinkCard, LinkGrid } from "@/components/links/link-card";
 import { PendingRefresher } from "@/components/links/pending-refresher";
 import { buttonVariants } from "@/components/ui/button";
 import { getDayData } from "@/lib/data/day";
+import { getLocale, getTranslations } from "next-intl/server";
 import { addDays, formatDayLong, isValidDay } from "@/lib/dates";
 import { guideSchema } from "@/lib/prompts/guide";
 import { journalSchema } from "@/lib/prompts/journal";
@@ -19,7 +20,7 @@ import { getUserContext } from "@/lib/user";
 export default function DayPage({ params }: PageProps<"/day/[date]">) {
   return (
     <PageContainer>
-      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading</p>}>
+      <Suspense fallback={<span />}>
         <Day params={params} />
       </Suspense>
     </PageContainer>
@@ -30,6 +31,7 @@ async function Day({ params }: { params: PageProps<"/day/[date]">["params"] }) {
   const { date } = await params;
   if (!isValidDay(date)) notFound();
   const { supabase, timezone, today } = await getUserContext();
+  const [t, locale] = await Promise.all([getTranslations("day"), getLocale()]);
   const { categories, log, planned, completed, notes, links } = await getDayData(supabase, date, timezone);
   const catById = new Map(categories.map((c) => [c.id, c]));
   const journal = journalSchema.safeParse(log?.ai_journal);
@@ -39,40 +41,40 @@ async function Day({ params }: { params: PageProps<"/day/[date]">["params"] }) {
   return (
     <div className="flex flex-col gap-4">
       <header className="mb-2 flex items-center justify-between gap-2">
-        <Link href={`/day/${addDays(date, -1)}`} className={nav} aria-label="Previous day">
+        <Link href={`/day/${addDays(date, -1)}`} className={nav} aria-label={t("prev")}>
           <ChevronLeft />
         </Link>
         <div className="text-center">
-          <h1 className="text-xl font-semibold">{formatDayLong(date)}</h1>
+          <h1 className="text-xl font-semibold">{formatDayLong(date, locale)}</h1>
           {date === today ? (
             <Link href="/" className="text-xs text-muted-foreground hover:text-foreground">
-              Go to Today
+              {t("goToday")}
             </Link>
           ) : (
             <Link href={`/day/${today}`} className="text-xs text-muted-foreground hover:text-foreground">
-              Jump to today
+              {t("jumpToday")}
             </Link>
           )}
         </div>
-        <Link href={`/day/${addDays(date, 1)}`} className={nav} aria-label="Next day">
+        <Link href={`/day/${addDays(date, 1)}`} className={nav} aria-label={t("next")}>
           <ChevronRight />
         </Link>
       </header>
 
-      <Section title="Plan">
-        <ItemChecklist items={planned} categories={categories} empty="Nothing was planned for this day." />
+      <Section title={t("plan")}>
+        <ItemChecklist items={planned} categories={categories} empty={t("noPlan")} />
       </Section>
 
-      <Section title="Done">
-        <ItemChecklist items={completed} categories={categories} uncheckedStatus="in_progress" empty="Nothing was completed this day." />
+      <Section title={t("done")}>
+        <ItemChecklist items={completed} categories={categories} uncheckedStatus="in_progress" empty={t("noDone")} />
       </Section>
 
-      <Section title="Notes">
-        <NoteList notes={notes} categories={categories} timezone={timezone} empty="No notes for this day." />
+      <Section title={t("notes")}>
+        <NoteList notes={notes} categories={categories} timezone={timezone} empty={t("noNotes")} />
       </Section>
 
       {links.length > 0 && (
-        <Section title="Links">
+        <Section title={t("links")}>
           <PendingRefresher active={links.some((l) => l.fetch_status === "pending")} />
           <LinkGrid>
             {links.map((l) => (
@@ -82,13 +84,13 @@ async function Day({ params }: { params: PageProps<"/day/[date]">["params"] }) {
         </Section>
       )}
 
-      <Section title="Journal">
+      <Section title={t("journal")}>
         <div className="flex flex-col gap-3">
           {log?.reflection && <p className="text-sm">&ldquo;{log.reflection}&rdquo;</p>}
           {journal.success && <JournalView journal={journal.data} />}
           {guide.success && <GuideView guide={guide.data} />}
           {!log?.reflection && !journal.success && !guide.success && (
-            <p className="text-sm text-muted-foreground">No journal for this day.</p>
+            <p className="text-sm text-muted-foreground">{t("noJournal")}</p>
           )}
         </div>
       </Section>

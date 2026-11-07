@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Search, Settings } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 import { cn } from "@/lib/utils";
 import { NAV_ITEMS, TAB_ITEMS, isActive } from "./nav-items";
 
@@ -13,10 +15,11 @@ export function SideNav() {
 
 /** Render-only; also used as the Suspense fallback (no active state). */
 export function SideNavView({ pathname }: { pathname: string }) {
+  const t = useTranslations("nav");
   return (
     <aside className="sticky top-0 hidden h-dvh w-56 shrink-0 flex-col border-r bg-card px-3 py-6 md:flex">
       <Link href="/" className="px-3 pb-6 text-base font-semibold">
-        Study Journal
+        {t("appName")}
       </Link>
       <Link
         href="/search"
@@ -26,10 +29,10 @@ export function SideNavView({ pathname }: { pathname: string }) {
         )}
       >
         <Search className="size-4" />
-        Search
+        {t("search")}
       </Link>
-      <nav className="flex flex-col gap-1" aria-label="Main menu">
-        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+      <nav className="flex flex-col gap-1" aria-label={t("mainMenu")}>
+        {NAV_ITEMS.map(({ href, key, icon: Icon }) => {
           const active = isActive(pathname, href);
           return (
             <Link
@@ -42,27 +45,29 @@ export function SideNavView({ pathname }: { pathname: string }) {
               )}
             >
               <Icon className={cn("size-4", active && "text-accent-strong")} />
-              {label}
+              {t(key)}
             </Link>
           );
         })}
       </nav>
+      <LanguageSwitcher className="mt-auto self-start" />
     </aside>
   );
 }
 
 /** Mobile: top bar (title + search) and bottom tab bar. */
 export function MobileTopBar() {
+  const t = useTranslations("nav");
   return (
     <header className="sticky top-0 z-20 flex h-12 items-center justify-between border-b bg-background/95 px-4 backdrop-blur md:hidden">
       <Link href="/" className="text-sm font-semibold">
-        Study Journal
+        {t("appName")}
       </Link>
       <div className="flex items-center">
-        <Link href="/search" aria-label="Search" className="rounded-lg p-2 text-muted-foreground hover:bg-muted">
+        <Link href="/search" aria-label={t("search")} className="rounded-lg p-2 text-muted-foreground hover:bg-muted">
           <Search className="size-5" />
         </Link>
-        <Link href="/settings" aria-label="Settings" className="rounded-lg p-2 text-muted-foreground hover:bg-muted">
+        <Link href="/settings" aria-label={t("settings")} className="rounded-lg p-2 text-muted-foreground hover:bg-muted">
           <Settings className="size-5" />
         </Link>
       </div>
@@ -75,12 +80,13 @@ export function BottomTabs() {
 }
 
 export function BottomTabsView({ pathname }: { pathname: string }) {
+  const t = useTranslations("nav");
   return (
     <nav
-      aria-label="Main menu"
+      aria-label={t("mainMenu")}
       className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-5 border-t bg-card pb-[env(safe-area-inset-bottom)] md:hidden"
     >
-      {TAB_ITEMS.map(({ href, label, icon: Icon }) => {
+      {TAB_ITEMS.map(({ href, key, icon: Icon }) => {
         const active = isActive(pathname, href);
         return (
           <Link
@@ -93,7 +99,7 @@ export function BottomTabsView({ pathname }: { pathname: string }) {
             )}
           >
             <Icon className={cn("size-5", active && "text-accent-strong")} />
-            {label}
+            {t(key)}
           </Link>
         );
       })}

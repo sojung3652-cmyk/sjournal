@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { MODELS } from "@/lib/ai/models";
 import type { PromptSpec } from "@/lib/ai/run";
-import { LANGUAGE_RULE } from "./language";
 import { objList, str } from "./zod-tolerant";
 
 export const summarySchema = z.object({
@@ -12,7 +11,7 @@ export type NoteSummary = z.infer<typeof summarySchema>;
 
 export const summarizePrompt: PromptSpec<NoteSummary> = {
   kind: "summarize",
-  version: "3",
+  version: "4",
   model: MODELS.fast,
   maxTokens: 3000,
   system: [
@@ -20,7 +19,6 @@ export const summarizePrompt: PromptSpec<NoteSummary> = {
     "Extract 3-5 key concepts, explain each in 1-2 sentences, and write a one-line summary of the whole note.",
     "- Do not add content that is not in the note. When unsure, reuse the note's wording.",
     "- Be concise.",
-    LANGUAGE_RULE,
   ].join("\n"),
   jsonSchema: {
     type: "object",

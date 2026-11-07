@@ -8,13 +8,14 @@ import { SummaryPanel } from "@/components/ai/summary-panel";
 import { aiAvailable } from "@/lib/ai/run";
 import { dayInTimezone } from "@/lib/dates";
 import { summarySchema } from "@/lib/prompts/summarize";
+import { getTranslations } from "next-intl/server";
 import { getUserContext } from "@/lib/user";
 import { NoteView } from "./note-view";
 
 export default function NotePage({ params }: PageProps<"/notes/[id]">) {
   return (
     <PageContainer>
-      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading</p>}>
+      <Suspense fallback={<span />}>
         <Note params={params} />
       </Suspense>
     </PageContainer>
@@ -27,6 +28,7 @@ async function Note({ params }: { params: PageProps<"/notes/[id]">["params"] }) 
   const { id } = await params;
   if (!UUID.test(id)) notFound();
   const { supabase, timezone } = await getUserContext();
+  const t = await getTranslations("notes");
 
   const [{ data: note }, { data: categories }] = await Promise.all([
     supabase
@@ -61,7 +63,7 @@ async function Note({ params }: { params: PageProps<"/notes/[id]">["params"] }) 
     <div className="flex flex-col gap-4">
       <Link href={`/day/${day}`} className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
         <ChevronLeft className="size-4" />
-        Daily page
+        {t("back")}
       </Link>
       <NoteView
         note={{
