@@ -7,8 +7,8 @@ import { Board } from "./board";
 export default function BoardPage() {
   return (
     <PageContainer wide>
-      <PageHeader title="보드" description="카드를 끌어 상태를 바꿀 수 있습니다." />
-      <Suspense fallback={<p className="text-sm text-muted-foreground">불러오는 중</p>}>
+      <PageHeader title="Board" description="Drag a card to change its status." />
+      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading</p>}>
         <BoardData />
       </Suspense>
     </PageContainer>

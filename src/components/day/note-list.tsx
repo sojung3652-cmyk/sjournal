@@ -10,7 +10,7 @@ export function NoteList({
   notes,
   categories,
   timezone,
-  empty = "아직 노트가 없습니다.",
+  empty = "No notes yet.",
 }: {
   notes: DayNote[];
   categories: { id: string; name: string; color: string }[];
@@ -19,8 +19,7 @@ export function NoteList({
 }) {
   if (notes.length === 0) return <p className="text-sm text-muted-foreground">{empty}</p>;
   const byId = new Map(categories.map((c) => [c.id, c]));
-  // 24h: Node's ICU renders ko-KR dayPeriod as "PM", which looks out of place.
-  const time = new Intl.DateTimeFormat("ko-KR", { timeZone: timezone, hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+  const time = new Intl.DateTimeFormat("en-US", { timeZone: timezone, hour: "numeric", minute: "2-digit" });
   return (
     <ul className="flex flex-col divide-y">
       {notes.map((n) => {
@@ -32,7 +31,7 @@ export function NoteList({
             <Link href={`/notes/${n.id}`} className="flex items-start gap-3 rounded-lg px-2 py-2.5 hover:bg-muted">
               <Icon className="mt-0.5 size-4 shrink-0 text-accent-strong" aria-label={SOURCE_LABEL[n.source_type]} />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">{n.title || preview.slice(0, 60) || "제목 없음"}</p>
+                <p className="truncate text-sm font-medium">{n.title || preview.slice(0, 60) || "Untitled"}</p>
                 {preview && n.title && <p className="truncate text-xs text-muted-foreground">{preview}</p>}
               </div>
               <div className="flex shrink-0 flex-col items-end gap-1">

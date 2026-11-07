@@ -8,8 +8,8 @@ import { CategoryManager, type CategoryStats } from "./category-manager";
 export default function CategoriesPage() {
   return (
     <PageContainer>
-      <PageHeader title="카테고리" description="과목별 색상은 모든 화면에서 똑같이 쓰입니다." />
-      <Suspense fallback={<p className="text-sm text-muted-foreground">불러오는 중</p>}>
+      <PageHeader title="Categories" description="Each subject keeps the same color on every screen." />
+      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading</p>}>
         <CategoryList />
       </Suspense>
     </PageContainer>
@@ -26,7 +26,7 @@ async function CategoryList() {
   ]);
 
   if (error) {
-    return <p className="text-sm text-destructive">카테고리를 불러오지 못했습니다.</p>;
+    return <p className="text-sm text-destructive">Couldn&apos;t load categories.</p>;
   }
 
   const stats: Record<string, CategoryStats> = {};

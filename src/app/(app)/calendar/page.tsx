@@ -12,15 +12,16 @@ import { cn } from "@/lib/utils";
 export default function CalendarPage({ searchParams }: PageProps<"/calendar">) {
   return (
     <PageContainer>
-      <PageHeader title="캘린더" description="기록한 날에는 과목 색 점이 표시됩니다." />
-      <Suspense fallback={<p className="text-sm text-muted-foreground">불러오는 중</p>}>
+      <PageHeader title="Calendar" description="Days with activity show a dot in each subject's color." />
+      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading</p>}>
         <Month searchParams={searchParams} />
       </Suspense>
     </PageContainer>
   );
 }
 
-const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const MAX_DOTS = 3;
 
 function parseMonth(raw: unknown, fallback: string): string {
@@ -59,13 +60,13 @@ async function Month({ searchParams }: { searchParams: PageProps<"/calendar">["s
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <Link href={`/calendar?month=${shiftMonth(month, -1)}`} className={nav} aria-label="이전 달">
+        <Link href={`/calendar?month=${shiftMonth(month, -1)}`} className={nav} aria-label="Previous month">
           <ChevronLeft />
         </Link>
         <h2 className="text-base font-medium">
-          {y}년 {Number(m)}월
+          {MONTHS[Number(m) - 1]} {y}
         </h2>
-        <Link href={`/calendar?month=${shiftMonth(month, 1)}`} className={nav} aria-label="다음 달">
+        <Link href={`/calendar?month=${shiftMonth(month, 1)}`} className={nav} aria-label="Next month">
           <ChevronRight />
         </Link>
       </div>
@@ -94,7 +95,7 @@ async function Month({ searchParams }: { searchParams: PageProps<"/calendar">["s
                 href={`/day/${day}`}
                 data-day={day}
                 data-recorded={recorded || undefined}
-                aria-label={`${day}${recorded ? ` 기록 있음${names ? ` (${names})` : ""}` : ""}`}
+                aria-label={`${day}${recorded ? ` recorded${names ? ` (${names})` : ""}` : ""}`}
                 className={cn(
                   "flex aspect-square flex-col items-center gap-1 border-t p-1 text-sm hover:bg-muted sm:aspect-auto sm:h-20 sm:items-start sm:p-2",
                   i % 7 !== 0 && "border-l",

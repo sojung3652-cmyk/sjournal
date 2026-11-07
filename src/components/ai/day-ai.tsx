@@ -8,24 +8,24 @@ import { Button } from "@/components/ui/button";
 import type { Guide } from "@/lib/prompts/guide";
 import type { Journal } from "@/lib/prompts/journal";
 
-const NO_KEY = <p className="text-xs text-muted-foreground">AI 기능을 사용할 수 없습니다. (API 키 없음)</p>;
+const NO_KEY = <p className="text-xs text-muted-foreground">AI features are unavailable (no API key).</p>;
 
 export function JournalView({ journal }: { journal: Journal }) {
   return (
-    <AiBox title="저널">
-      <AiList label="배운 것" items={journal.learned} />
-      <AiList label="어려웠던 것" items={journal.difficult} />
-      <AiList label="내일 할 것" items={journal.tomorrow} />
+    <AiBox title="Journal">
+      <AiList label="What I learned" items={journal.learned} />
+      <AiList label="What was hard" items={journal.difficult} />
+      <AiList label="Tomorrow" items={journal.tomorrow} />
     </AiBox>
   );
 }
 
 export function GuideView({ guide }: { guide: Guide }) {
   return (
-    <AiBox title="다음 학습 가이드">
-      <AiList label="내일 할 일" items={guide.tasks.map((t) => (t.category ? `${t.title} (${t.category})` : t.title))} />
-      <AiList label="복습할 개념" items={guide.review} />
-      <AiList label="막힌 부분 해결 팁" items={guide.tips} />
+    <AiBox title="Next-day guide">
+      <AiList label="Tasks for tomorrow" items={guide.tasks.map((t) => (t.category ? `${t.title} (${t.category})` : t.title))} />
+      <AiList label="Concepts to review" items={guide.review} />
+      <AiList label="Tips for where you got stuck" items={guide.tips} />
     </AiBox>
   );
 }
@@ -39,10 +39,10 @@ export function JournalDraft({ day, saved, enabled }: { day: string; saved: Jour
 
   if (draft) {
     return (
-      <AiBox title="저널 초안">
-        <LinesField id="j-learned" label="배운 것" value={draft.learned} onChange={(v) => setDraft({ ...draft, learned: v })} />
-        <LinesField id="j-difficult" label="어려웠던 것" value={draft.difficult} onChange={(v) => setDraft({ ...draft, difficult: v })} />
-        <LinesField id="j-tomorrow" label="내일 할 것" value={draft.tomorrow} onChange={(v) => setDraft({ ...draft, tomorrow: v })} />
+      <AiBox title="Journal draft">
+        <LinesField id="j-learned" label="What I learned" value={draft.learned} onChange={(v) => setDraft({ ...draft, learned: v })} />
+        <LinesField id="j-difficult" label="What was hard" value={draft.difficult} onChange={(v) => setDraft({ ...draft, difficult: v })} />
+        <LinesField id="j-tomorrow" label="Tomorrow" value={draft.tomorrow} onChange={(v) => setDraft({ ...draft, tomorrow: v })} />
         {error && <p className="text-sm text-destructive">{error}</p>}
         <div className="flex gap-2">
           <Button
@@ -58,10 +58,10 @@ export function JournalDraft({ day, saved, enabled }: { day: string; saved: Jour
               })
             }
           >
-            저널 저장
+            Save journal
           </Button>
           <Button size="sm" variant="ghost" onClick={() => setDraft(null)}>
-            취소
+            Cancel
           </Button>
         </div>
       </AiBox>
@@ -86,7 +86,7 @@ export function JournalDraft({ day, saved, enabled }: { day: string; saved: Jour
               });
             }}
           >
-            {loading ? "저널 쓰는 중" : saved ? "저널 다시 만들기" : "AI 저널 초안 만들기"}
+            {loading ? "Writing journal" : saved ? "Redo journal" : "Draft journal with AI"}
           </Button>
         </div>
       ) : (
@@ -106,21 +106,21 @@ export function GuideDraft({ day, saved, enabled }: { day: string; saved: Guide 
 
   if (draft) {
     return (
-      <AiBox title="다음 학습 가이드 초안">
+      <AiBox title="Next-day guide draft">
         <div className="flex flex-col gap-1.5">
-          <p className="text-xs font-medium">내일 할 일</p>
+          <p className="text-xs font-medium">Tasks for tomorrow</p>
           {draft.tasks.map((t, i) => (
             <input
               key={i}
-              aria-label={`내일 할 일 ${i + 1}`}
+              aria-label={`Task for tomorrow ${i + 1}`}
               value={t.title}
               onChange={(e) => setDraft({ ...draft, tasks: draft.tasks.map((x, j) => (j === i ? { ...x, title: e.target.value } : x)) })}
               className="h-8 rounded-lg border border-ai-foreground/20 bg-card px-2.5 text-sm text-foreground"
             />
           ))}
         </div>
-        <LinesField id="g-review" label="복습할 개념" value={draft.review} onChange={(v) => setDraft({ ...draft, review: v })} />
-        <LinesField id="g-tips" label="막힌 부분 해결 팁" value={draft.tips} onChange={(v) => setDraft({ ...draft, tips: v })} />
+        <LinesField id="g-review" label="Concepts to review" value={draft.review} onChange={(v) => setDraft({ ...draft, review: v })} />
+        <LinesField id="g-tips" label="Tips for where you got stuck" value={draft.tips} onChange={(v) => setDraft({ ...draft, tips: v })} />
         {error && <p className="text-sm text-destructive">{error}</p>}
         <div className="flex gap-2">
           <Button
@@ -140,10 +140,10 @@ export function GuideDraft({ day, saved, enabled }: { day: string; saved: Guide 
               })
             }
           >
-            가이드 저장
+            Save guide
           </Button>
           <Button size="sm" variant="ghost" onClick={() => setDraft(null)}>
-            취소
+            Cancel
           </Button>
         </div>
       </AiBox>
@@ -168,7 +168,7 @@ export function GuideDraft({ day, saved, enabled }: { day: string; saved: Guide 
               });
             }}
           >
-            {loading ? "가이드 만드는 중" : saved ? "가이드 다시 만들기" : "다음 학습 가이드 만들기"}
+            {loading ? "Creating guide" : saved ? "Redo guide" : "Create next-day guide"}
           </Button>
         </div>
       ) : (
@@ -186,7 +186,7 @@ export function SuggestedTasks({ guide, existingTitles }: { guide: Guide; existi
   const [, start] = useTransition();
   const existing = new Set(existingTitles);
   return (
-    <AiBox title="어제 제안한 오늘 할 일">
+    <AiBox title="Suggested for today (from yesterday)">
       <ul className="flex flex-col gap-2">
         {guide.tasks.map((t, i) => {
           const done = added.has(i) || existing.has(t.title);
@@ -211,9 +211,9 @@ export function SuggestedTasks({ guide, existingTitles }: { guide: Guide; existi
                   })
                 }
               >
-                {done ? "추가됨" : (
+                {done ? "Added" : (
                   <>
-                    <Plus /> 오늘 할 것에
+                    <Plus /> Add to today
                   </>
                 )}
               </Button>

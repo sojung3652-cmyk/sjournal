@@ -12,7 +12,7 @@ import { getUserContext } from "@/lib/user";
 export default function SearchPage({ searchParams }: PageProps<"/search">) {
   return (
     <PageContainer>
-      <PageHeader title="검색" description="노트 제목, 본문, 태그를 함께 찾습니다." />
+      <PageHeader title="Search" description="Searches note titles, content, and tags." />
       <Suspense fallback={<SearchForm defaultValue="" />}>
         <Results searchParams={searchParams} />
       </Suspense>
@@ -28,8 +28,8 @@ function SearchForm({ defaultValue }: { defaultValue: string }) {
         name="q"
         type="search"
         defaultValue={defaultValue}
-        aria-label="검색어"
-        placeholder="예: 역전파, 미분"
+        aria-label="Search query"
+        placeholder="e.g. 역전파, derivatives"
         className="h-10 pl-9"
         autoFocus
       />
@@ -68,12 +68,12 @@ async function Results({ searchParams }: { searchParams: PageProps<"/search">["s
     <>
       <SearchForm defaultValue={q} />
       {error ? (
-        <p className="text-sm text-destructive">검색하지 못했습니다.</p>
+        <p className="text-sm text-destructive">Search failed.</p>
       ) : !data?.length ? (
-        <p className="text-sm text-muted-foreground">&lsquo;{q}&rsquo;에 대한 결과가 없습니다.</p>
+        <p className="text-sm text-muted-foreground">No results for &lsquo;{q}&rsquo;.</p>
       ) : (
         <>
-          <p className="mb-3 text-xs text-muted-foreground">{data.length}개 결과</p>
+          <p className="mb-3 text-xs text-muted-foreground">{data.length} {data.length === 1 ? "result" : "results"}</p>
           <ul className="flex flex-col divide-y rounded-xl border bg-card">
             {data.map((n) => {
               // Generated RPC types mark these non-null; they can be null at runtime.
@@ -85,7 +85,7 @@ async function Results({ searchParams }: { searchParams: PageProps<"/search">["s
                 <li key={n.id}>
                   <Link href={`/notes/${n.id}`} className="flex flex-col gap-1.5 p-4 hover:bg-muted">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="truncate text-sm font-medium">{(n.title as string | null) || "제목 없음"}</p>
+                      <p className="truncate text-sm font-medium">{(n.title as string | null) || "Untitled"}</p>
                       {logDate && <span className="shrink-0 text-xs text-muted-foreground">{formatDayShort(logDate)}</span>}
                     </div>
                     {n.content && <p className="line-clamp-2 text-xs text-muted-foreground">{snippet(n.content, q)}</p>}

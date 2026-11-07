@@ -12,10 +12,10 @@ export type NoteResult = { error?: string; ok?: boolean; noteId?: string };
 /** Quick add (text or link). Notes always attach to today's daily log. */
 export async function quickAddText(_prev: NoteResult, formData: FormData): Promise<NoteResult> {
   const ctx = await getActionContext();
-  if (!ctx) return { error: "로그인이 필요합니다." };
+  if (!ctx) return { error: "Please log in." };
   const text = String(formData.get("text") ?? "").trim();
-  if (!text) return { error: "내용을 입력해 주세요." };
-  if (text.length > NOTE_CONTENT_MAX) return { error: "내용이 너무 깁니다." };
+  if (!text) return { error: "Write something first." };
+  if (text.length > NOTE_CONTENT_MAX) return { error: "That's too long." };
 
   const dailyLogId = await ensureDailyLog(ctx.supabase, ctx.userId, ctx.today);
   const link = isUrl(text);
@@ -29,7 +29,7 @@ export async function quickAddText(_prev: NoteResult, formData: FormData): Promi
     })
     .select("id")
     .single();
-  if (error) return { error: "저장하지 못했습니다." };
+  if (error) return { error: "Couldn't save." };
 
   refresh();
   return { ok: true, noteId: data.id };
@@ -42,9 +42,9 @@ export async function quickAddText(_prev: NoteResult, formData: FormData): Promi
  */
 export async function createFileNote(fileName: string, mimeType: string): Promise<NoteResult & { path?: string }> {
   const ctx = await getActionContext();
-  if (!ctx) return { error: "로그인이 필요합니다." };
+  if (!ctx) return { error: "Please log in." };
   const isPdf = mimeType === "application/pdf";
-  if (!isPdf && !mimeType.startsWith("image/")) return { error: "이미지나 PDF만 올릴 수 있습니다." };
+  if (!isPdf && !mimeType.startsWith("image/")) return { error: "Only images and PDFs can be uploaded." };
 
   const dailyLogId = await ensureDailyLog(ctx.supabase, ctx.userId, ctx.today);
   const { data, error } = await ctx.supabase
@@ -57,7 +57,7 @@ export async function createFileNote(fileName: string, mimeType: string): Promis
     })
     .select("id")
     .single();
-  if (error) return { error: "저장하지 못했습니다." };
+  if (error) return { error: "Couldn't save." };
 
   const safe = fileName.replace(/[^\w.\-]+/g, "_").slice(-80) || "file";
   return { ok: true, noteId: data.id, path: `${ctx.userId}/${data.id}/${Date.now()}-${safe}` };
@@ -66,34 +66,34 @@ export async function createFileNote(fileName: string, mimeType: string): Promis
 /** File quick add, step 2: record the uploaded object. On upload failure, call discardNote(). */
 export async function attachFile(noteId: string, path: string, mimeType: string): Promise<NoteResult> {
   const ctx = await getActionContext();
-  if (!ctx) return { error: "로그인이 필요합니다." };
+  if (!ctx) return { error: "Please log in." };
   const { error } = await ctx.supabase.from("attachments").insert({ note_id: noteId, storage_path: path, mime_type: mimeType });
-  if (error) return { error: "첨부를 저장하지 못했습니다." };
+  if (error) return { error: "Couldn't save the attachment." };
   refresh();
   return { ok: true, noteId };
 }
 
 export async function discardNote(noteId: string): Promise<NoteResult> {
   const ctx = await getActionContext();
-  if (!ctx) return { error: "로그인이 필요합니다." };
+  if (!ctx) return { error: "Please log in." };
   await ctx.supabase.from("notes").delete().eq("id", noteId);
   return { ok: true };
 }
 
 export async function updateNote(_prev: NoteResult, formData: FormData): Promise<NoteResult> {
   const ctx = await getActionContext();
-  if (!ctx) return { error: "로그인이 필요합니다." };
+  if (!ctx) return { error: "Please log in." };
   const id = String(formData.get("id") ?? "");
   const title = String(formData.get("title") ?? "").trim().slice(0, 200);
   const content = String(formData.get("content") ?? "");
   const categoryId = String(formData.get("category_id") ?? "") || null;
-  if (content.length > NOTE_CONTENT_MAX) return { error: "내용이 너무 깁니다." };
+  if (content.length > NOTE_CONTENT_MAX) return { error: "That's too long." };
 
   const { error, count } = await ctx.supabase
     .from("notes")
     .update({ title: title || null, content, category_id: categoryId }, { count: "exact" })
     .eq("id", id);
-  if (error || !count) return { error: "저장하지 못했습니다." };
+  if (error || !count) return { error: "Couldn't save." };
 
   const tagError = await setNoteTags(ctx.supabase, id, parseTags(String(formData.get("tags") ?? "")));
   if (tagError) return { error: tagError };
@@ -104,10 +104,10 @@ export async function updateNote(_prev: NoteResult, formData: FormData): Promise
 
 export async function deleteNote(noteId: string): Promise<NoteResult> {
   const ctx = await getActionContext();
-  if (!ctx) return { error: "로그인이 필요합니다." };
+  if (!ctx) return { error: "Please log in." };
   const { data: files } = await ctx.supabase.from("attachments").select("storage_path").eq("note_id", noteId);
   if (files?.length) await ctx.supabase.storage.from("attachments").remove(files.map((f) => f.storage_path));
   const { error } = await ctx.supabase.from("notes").delete().eq("id", noteId);
-  if (error) return { error: "삭제하지 못했습니다." };
+  if (error) return { error: "Couldn't delete." };
   redirect("/");
 }

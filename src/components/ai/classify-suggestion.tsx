@@ -50,9 +50,9 @@ export function ClassifySuggestionPanel({
   }, [noteId]);
 
   if (!enabled) {
-    return auto ? null : <p className="text-xs text-muted-foreground">AI 기능을 사용할 수 없습니다. (API 키 없음)</p>;
+    return auto ? null : <p className="text-xs text-muted-foreground">AI features are unavailable (no API key).</p>;
   }
-  if (saved) return <p className="text-sm text-muted-foreground">분류를 적용했습니다.</p>;
+  if (saved) return <p className="text-sm text-muted-foreground">Applied.</p>;
 
   if (!suggestion) {
     return (
@@ -60,22 +60,22 @@ export function ClassifySuggestionPanel({
         {!auto && (
           <div>
             <Button size="sm" variant="outline" onClick={run} disabled={loading}>
-              {loading ? "분류하는 중" : "AI로 분류하기"}
+              {loading ? "Classifying" : "Classify with AI"}
             </Button>
           </div>
         )}
-        {auto && loading && <p className="text-xs text-muted-foreground">AI가 카테고리와 태그를 고르는 중</p>}
+        {auto && loading && <p className="text-xs text-muted-foreground">AI is picking a category and tags</p>}
         {error && <p className="text-sm text-destructive">{error}</p>}
       </div>
     );
   }
 
   return (
-    <AiBox title="카테고리·태그 제안">
+    <AiBox title="Suggested category & tags">
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
           <label htmlFor={`cls-cat-${noteId}`} className="text-xs font-medium">
-            카테고리
+            Category
           </label>
           <select
             id={`cls-cat-${noteId}`}
@@ -83,7 +83,7 @@ export function ClassifySuggestionPanel({
             onChange={(e) => setCategoryId(e.target.value)}
             className="h-8 rounded-lg border border-ai-foreground/20 bg-card px-2 text-sm text-foreground"
           >
-            <option value="">선택 안 함</option>
+            <option value="">None</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
@@ -93,7 +93,7 @@ export function ClassifySuggestionPanel({
         </div>
         <div className="flex flex-col gap-1.5">
           <label htmlFor={`cls-tags-${noteId}`} className="text-xs font-medium">
-            태그
+            Tags
           </label>
           <input
             id={`cls-tags-${noteId}`}
@@ -113,14 +113,14 @@ export function ClassifySuggestionPanel({
             startSaving(async () => {
               const res = await applyClassification(noteId, categoryId || null, tags);
               if (!res.ok) return setError(res.error);
-              setSaved(true); // keep the panel to show the confirmation; only '무시' closes it
+              setSaved(true); // keep the panel to show the confirmation; only 'Dismiss' closes it
             })
           }
         >
-          적용
+          Apply
         </Button>
         <Button size="sm" variant="ghost" onClick={() => (onDone ? onDone() : setSuggestion(null))}>
-          무시
+          Dismiss
         </Button>
       </div>
     </AiBox>

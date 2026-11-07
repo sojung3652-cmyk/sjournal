@@ -41,7 +41,7 @@ export function addDays(day: string, delta: number): string {
 }
 
 export function formatDayLong(day: string): string {
-  return new Intl.DateTimeFormat("ko-KR", {
+  return new Intl.DateTimeFormat("en-US", {
     timeZone: "UTC",
     year: "numeric",
     month: "long",
@@ -51,9 +51,9 @@ export function formatDayLong(day: string): string {
 }
 
 export function formatDayShort(day: string): string {
-  return new Intl.DateTimeFormat("ko-KR", {
+  return new Intl.DateTimeFormat("en-US", {
     timeZone: "UTC",
-    month: "long",
+    month: "short",
     day: "numeric",
     weekday: "short",
   }).format(new Date(`${day}T00:00:00Z`));

@@ -3,10 +3,10 @@ import type { Database } from "@/types/database";
 export type StudyStatus = Database["public"]["Enums"]["study_status"];
 
 export const STUDY_STATUSES: { key: StudyStatus; label: string }[] = [
-  { key: "backlog", label: "앞으로 할 것" },
-  { key: "today", label: "오늘" },
-  { key: "in_progress", label: "진행 중" },
-  { key: "done", label: "완료" },
+  { key: "backlog", label: "Backlog" },
+  { key: "today", label: "Today" },
+  { key: "in_progress", label: "In progress" },
+  { key: "done", label: "Done" },
 ];
 
 export function isStudyStatus(v: string): v is StudyStatus {

@@ -1,12 +1,12 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-/** Everything AI-generated is shown on ai-surface with an 'AI 초안' label (PRD 6). */
+/** Everything AI-generated is shown on ai-surface with an 'AI draft' label (PRD 6). */
 export function AiBox({ title, children, className }: { title?: string; children: ReactNode; className?: string }) {
   return (
     <div className={cn("flex flex-col gap-3 rounded-xl bg-ai-surface p-4 text-ai-foreground", className)} data-ai-draft>
       <div className="flex items-center gap-2">
-        <span className="rounded-full border border-ai-foreground/30 px-2 py-0.5 text-[11px] font-medium">AI 초안</span>
+        <span className="rounded-full border border-ai-foreground/30 px-2 py-0.5 text-[11px] font-medium">AI draft</span>
         {title && <span className="text-sm font-medium">{title}</span>}
       </div>
       {children}
@@ -31,7 +31,7 @@ export function LinesField({
   return (
     <div className="flex flex-col gap-1.5">
       <label htmlFor={id} className="text-xs font-medium">
-        {label} <span className="font-normal opacity-70">(한 줄에 하나씩)</span>
+        {label} <span className="font-normal opacity-70">(one per line)</span>
       </label>
       <textarea
         id={id}

@@ -15,19 +15,19 @@ function readCredentials(formData: FormData) {
 
 export async function login(_prev: AuthState, formData: FormData): Promise<AuthState> {
   const { email, password } = readCredentials(formData);
-  if (!email || !password) return { error: "이메일과 비밀번호를 입력해 주세요." };
+  if (!email || !password) return { error: "Enter your email and password." };
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) return { error: "로그인에 실패했습니다. 이메일과 비밀번호를 확인해 주세요." };
+  if (error) return { error: "Couldn't log in. Check your email and password." };
 
   redirect("/");
 }
 
 export async function signup(_prev: AuthState, formData: FormData): Promise<AuthState> {
   const { email, password } = readCredentials(formData);
-  if (!email || !password) return { error: "이메일과 비밀번호를 입력해 주세요." };
-  if (password.length < 6) return { error: "비밀번호는 6자 이상이어야 합니다." };
+  if (!email || !password) return { error: "Enter your email and password." };
+  if (password.length < 6) return { error: "Password must be at least 6 characters." };
 
   const origin = (await headers()).get("origin") ?? "http://localhost:3000";
   const supabase = await createClient();
@@ -40,7 +40,7 @@ export async function signup(_prev: AuthState, formData: FormData): Promise<Auth
 
   // Email confirmation on: no session until the link is clicked.
   if (!data.session) {
-    return { message: "확인 메일을 보냈습니다. 메일의 링크를 누르면 로그인됩니다." };
+    return { message: "We sent you a confirmation email. Click the link in it to log in." };
   }
   redirect("/");
 }

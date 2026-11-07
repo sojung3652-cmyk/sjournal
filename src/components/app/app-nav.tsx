@@ -26,9 +26,9 @@ export function SideNavView({ pathname }: { pathname: string }) {
         )}
       >
         <Search className="size-4" />
-        검색
+        Search
       </Link>
-      <nav className="flex flex-col gap-1" aria-label="주요 메뉴">
+      <nav className="flex flex-col gap-1" aria-label="Main menu">
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const active = isActive(pathname, href);
           return (
@@ -58,7 +58,7 @@ export function MobileTopBar() {
       <Link href="/" className="text-sm font-semibold">
         Study Journal
       </Link>
-      <Link href="/search" aria-label="검색" className="rounded-lg p-2 text-muted-foreground hover:bg-muted">
+      <Link href="/search" aria-label="Search" className="rounded-lg p-2 text-muted-foreground hover:bg-muted">
         <Search className="size-5" />
       </Link>
     </header>
@@ -72,7 +72,7 @@ export function BottomTabs() {
 export function BottomTabsView({ pathname }: { pathname: string }) {
   return (
     <nav
-      aria-label="주요 메뉴"
+      aria-label="Main menu"
       className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-5 border-t bg-card pb-[env(safe-area-inset-bottom)] md:hidden"
     >
       {NAV_ITEMS.map(({ href, label, icon: Icon }) => {

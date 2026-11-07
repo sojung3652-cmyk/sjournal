@@ -11,14 +11,14 @@ const DUPLICATE = "23505";
 function parse(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const color = String(formData.get("color") ?? "");
-  if (!name) return { error: "이름을 입력해 주세요." } as const;
-  if (name.length > CATEGORY_NAME_MAX) return { error: `이름은 ${CATEGORY_NAME_MAX}자 이내로 입력해 주세요.` } as const;
-  if (!isCategoryColor(color)) return { error: "색상을 선택해 주세요." } as const;
+  if (!name) return { error: "Enter a name." } as const;
+  if (name.length > CATEGORY_NAME_MAX) return { error: `Name must be ${CATEGORY_NAME_MAX} characters or fewer.` } as const;
+  if (!isCategoryColor(color)) return { error: "Choose a color." } as const;
   return { name, color } as const;
 }
 
 function dbError(code: string | undefined): ActionResult {
-  return { error: code === DUPLICATE ? "이미 있는 이름입니다." : "저장하지 못했습니다. 다시 시도해 주세요." };
+  return { error: code === DUPLICATE ? "That name already exists." : "Couldn't save. Please try again." };
 }
 
 export async function createCategory(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
@@ -56,7 +56,7 @@ export async function updateCategory(_prev: ActionResult, formData: FormData): P
     .update({ name: input.name, color: input.color }, { count: "exact" })
     .eq("id", id);
   if (error) return dbError(error.code);
-  if (!count) return { error: "카테고리를 찾을 수 없습니다." };
+  if (!count) return { error: "Category not found." };
 
   refresh();
   return { ok: true };
@@ -66,7 +66,7 @@ export async function deleteCategory(id: string): Promise<ActionResult> {
   const supabase = await createClient();
   // study_items / notes keep their rows; category_id becomes null (FK on delete set null).
   const { error } = await supabase.from("categories").delete().eq("id", id);
-  if (error) return { error: "삭제하지 못했습니다. 다시 시도해 주세요." };
+  if (error) return { error: "Couldn't delete. Please try again." };
 
   refresh();
   return { ok: true };
@@ -75,7 +75,7 @@ export async function deleteCategory(id: string): Promise<ActionResult> {
 export async function reorderCategories(ids: string[]): Promise<ActionResult> {
   const supabase = await createClient();
   const { error } = await supabase.rpc("reorder_categories", { ids });
-  if (error) return { error: "순서를 저장하지 못했습니다." };
+  if (error) return { error: "Couldn't save the order." };
 
   refresh();
   return { ok: true };

@@ -76,7 +76,7 @@ export function InProgressCards({ items, categories }: { items: Item[]; categori
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
   const byId = new Map(categories.map((c) => [c.id, c]));
-  if (items.length === 0) return <p className="text-sm text-muted-foreground">진행 중인 항목이 없습니다.</p>;
+  if (items.length === 0) return <p className="text-sm text-muted-foreground">Nothing in progress.</p>;
   return (
     <ul className="grid gap-2 sm:grid-cols-2">
       {items.map((it) => {
@@ -97,7 +97,7 @@ export function InProgressCards({ items, categories }: { items: Item[]; categori
                 });
               }}
             >
-              <Check /> 완료
+              <Check /> Done
             </Button>
           </li>
         );

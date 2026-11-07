@@ -17,7 +17,7 @@ import { getUserContext } from "@/lib/user";
 export default function TodayPage() {
   return (
     <PageContainer>
-      <Suspense fallback={<p className="text-sm text-muted-foreground">불러오는 중</p>}>
+      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading</p>}>
         <Today />
       </Suspense>
     </PageContainer>
@@ -46,16 +46,16 @@ async function Today() {
     <div className="flex flex-col gap-4">
       <header className="mb-2 flex flex-wrap items-end justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-semibold">오늘</h1>
+          <h1 className="text-2xl font-semibold">Today</h1>
           <p className="mt-1 text-sm text-muted-foreground">{formatDayLong(today)}</p>
         </div>
-        <p className="text-sm" aria-label="연속 기록">
-          <span className="font-semibold text-accent-strong">{streak.days}일</span>{" "}
-          <span className="text-muted-foreground">연속 기록</span>
+        <p className="text-sm" aria-label="streak">
+          <span className="font-semibold text-accent-strong">{streak.days}-day</span>{" "}
+          <span className="text-muted-foreground">streak</span>
         </p>
       </header>
 
-      <Section title="빠른 추가">
+      <Section title="Quick add">
         <QuickAdd categories={categories} aiEnabled={aiEnabled} />
       </Section>
 
@@ -67,32 +67,32 @@ async function Today() {
       )}
 
       <Section
-        title="오늘 할 것"
+        title="Today's tasks"
         aside={
           <Link href="/board" className="text-xs text-muted-foreground hover:text-foreground">
-            보드에서 추가
+            Add from board
           </Link>
         }
       >
-        <ItemChecklist items={checklist} categories={categories} empty="오늘 할 일이 없습니다. 보드에서 '오늘' 칸으로 옮겨 보세요." />
+        <ItemChecklist items={checklist} categories={categories} empty="Nothing planned for today. Move items to the Today column on the board." />
       </Section>
 
-      <Section title="진행 중">
+      <Section title="In progress">
         <InProgressCards items={inProgress} categories={categories} />
       </Section>
 
       <Section
-        title="오늘의 노트"
+        title="Today's notes"
         aside={
           <Link href={`/day/${today}`} className="text-xs text-muted-foreground hover:text-foreground">
-            데일리 페이지
+            Daily page
           </Link>
         }
       >
         <NoteList notes={notes} categories={categories} timezone={timezone} />
       </Section>
 
-      <Section title="하루 마무리">
+      <Section title="Wrap up the day">
         <DayClose day={today} reflection={log?.reflection ?? null}>
           <JournalDraft day={today} saved={savedJournal.success ? savedJournal.data : null} enabled={aiEnabled} />
           <GuideDraft day={today} saved={savedGuide.success ? savedGuide.data : null} enabled={aiEnabled} />

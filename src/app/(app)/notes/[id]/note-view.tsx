@@ -50,11 +50,11 @@ export function NoteView({
       <form action={action} className="flex flex-col gap-4 rounded-xl border bg-card p-4 md:p-6">
         <input type="hidden" name="id" value={note.id} />
         <div className="flex flex-col gap-2">
-          <Label htmlFor="note-title">제목</Label>
+          <Label htmlFor="note-title">Title</Label>
           <Input id="note-title" name="title" defaultValue={note.title ?? ""} maxLength={200} />
         </div>
         <div className="flex flex-col gap-2">
-          <Label htmlFor="note-content">내용 (마크다운)</Label>
+          <Label htmlFor="note-content">Content (Markdown)</Label>
           <textarea
             id="note-content"
             name="content"
@@ -66,14 +66,14 @@ export function NoteView({
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="note-category">카테고리</Label>
+            <Label htmlFor="note-category">Category</Label>
             <select
               id="note-category"
               name="category_id"
               defaultValue={note.category_id ?? ""}
               className="h-8 rounded-lg border border-input bg-card px-2 text-sm"
             >
-              <option value="">카테고리 없음</option>
+              <option value="">No category</option>
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
@@ -82,7 +82,7 @@ export function NoteView({
             </select>
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="note-tags">태그 (쉼표로 구분)</Label>
+            <Label htmlFor="note-tags">Tags (comma-separated)</Label>
             <Input id="note-tags" name="tags" defaultValue={tags.join(", ")} />
           </div>
         </div>
@@ -90,10 +90,10 @@ export function NoteView({
         <div className="flex gap-2">
           {/* The one primary (pink) button while editing. */}
           <Button type="submit" size="sm" disabled={pending}>
-            저장
+            Save
           </Button>
           <Button type="button" size="sm" variant="ghost" onClick={() => setEditing(false)}>
-            취소
+            Cancel
           </Button>
         </div>
       </form>
@@ -104,7 +104,7 @@ export function NoteView({
     <article className="flex flex-col gap-4 rounded-xl border bg-card p-4 md:p-6">
       <header className="flex flex-col gap-2">
         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-          <span>{SOURCE_LABEL[note.source_type] ?? "메모"}</span>
+          <span>{SOURCE_LABEL[note.source_type] ?? "Memo"}</span>
           {category && <CategoryBadge name={category.name} color={category.color} />}
           {tags.map((t) => (
             <span key={t} className="rounded-full border px-2 py-0.5">
@@ -112,13 +112,13 @@ export function NoteView({
             </span>
           ))}
         </div>
-        <h1 className="text-xl font-semibold break-words">{note.title || "제목 없음"}</h1>
+        <h1 className="text-xl font-semibold break-words">{note.title || "Untitled"}</h1>
       </header>
 
       {note.content ? (
         <Markdown>{note.content}</Markdown>
       ) : (
-        attachments.length === 0 && <p className="text-sm text-muted-foreground">내용이 없습니다.</p>
+        attachments.length === 0 && <p className="text-sm text-muted-foreground">No content.</p>
       )}
 
       {attachments.length > 0 && (
@@ -150,7 +150,7 @@ export function NoteView({
 
       <div className="flex flex-wrap gap-2 border-t pt-4">
         <Button size="sm" variant="outline" onClick={() => setEditing(true)}>
-          수정
+          Edit
         </Button>
         {confirmDelete ? (
           <Button
@@ -159,11 +159,11 @@ export function NoteView({
             disabled={deleting}
             onClick={() => startDelete(async () => void (await deleteNote(note.id)))}
           >
-            삭제 확인
+            Confirm delete
           </Button>
         ) : (
           <Button size="sm" variant="ghost" onClick={() => setConfirmDelete(true)}>
-            삭제
+            Delete
           </Button>
         )}
       </div>

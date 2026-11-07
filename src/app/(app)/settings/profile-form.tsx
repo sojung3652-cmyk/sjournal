@@ -19,11 +19,11 @@ export function ProfileForm({
   return (
     <form action={action} className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
-        <Label htmlFor="display_name">이름</Label>
+        <Label htmlFor="display_name">Name</Label>
         <Input id="display_name" name="display_name" defaultValue={displayName ?? ""} maxLength={40} />
       </div>
       <div className="flex flex-col gap-2">
-        <Label htmlFor="timezone">시간대</Label>
+        <Label htmlFor="timezone">Time zone</Label>
         <select
           id="timezone"
           name="timezone"
@@ -36,13 +36,13 @@ export function ProfileForm({
             </option>
           ))}
         </select>
-        <p className="text-xs text-muted-foreground">&apos;오늘&apos; 날짜는 이 시간대를 기준으로 계산됩니다.</p>
+        <p className="text-xs text-muted-foreground">&apos;Today&apos; is calculated in this time zone.</p>
       </div>
       {state.error && <p className="text-sm text-destructive">{state.error}</p>}
-      {state.ok && <p className="text-sm text-muted-foreground">저장했습니다.</p>}
+      {state.ok && <p className="text-sm text-muted-foreground">Saved.</p>}
       <div>
         <Button type="submit" size="sm" disabled={pending}>
-          저장
+          Save
         </Button>
       </div>
     </form>

@@ -8,7 +8,7 @@ export async function setNoteTags(supabase: SupabaseClient<Database>, noteId: st
     const { error } = await supabase
       .from("tags")
       .upsert(names.map((name) => ({ name })), { onConflict: "user_id,name", ignoreDuplicates: true });
-    if (error) return "태그를 저장하지 못했습니다.";
+    if (error) return "Couldn't save tags.";
   }
   const { data: tags } = names.length
     ? await supabase.from("tags").select("id, name").in("name", names)
@@ -23,7 +23,7 @@ export async function setNoteTags(supabase: SupabaseClient<Database>, noteId: st
   if (toRemove.length) await supabase.from("note_tags").delete().eq("note_id", noteId).in("tag_id", toRemove);
   if (toAdd.length) {
     const { error } = await supabase.from("note_tags").insert(toAdd.map((tag_id) => ({ note_id: noteId, tag_id })));
-    if (error) return "태그를 저장하지 못했습니다.";
+    if (error) return "Couldn't save tags.";
   }
   return null;
 }

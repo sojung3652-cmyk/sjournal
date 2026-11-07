@@ -110,10 +110,13 @@ src/types/database.ts           GENERATED Supabase types — never edit by hand
 - Order per call: same-day cache (`ai_cache`) -> daily limit (50, `AI_DAILY_LIMIT`, counted in user tz) -> API ->
   log `ai_runs` (append-only: no update/delete policy, so users can't reset the limit) -> cache.
 - Fallback: no key / 401 / 402 / 429 / 5xx / limit -> `{ ok: false, error }`; the UI shows it, the rest of the app works.
-- AI output is always a draft in `<AiBox>` (ai-surface + "AI 초안"), editable, saved only by the user.
+- AI output is always a draft in `<AiBox>` (ai-surface + "AI draft"), editable, saved only by the user.
 
 ### UI
-- Korean default, English toggle later. Show only the active locale — never KO+EN side by side.
+- UI language is **English only** (Kim's decision, 2026-11-07). User content (notes, titles, categories,
+  reflections) is mostly Korean — never translate or alter it. No KO+EN side by side in the UI chrome.
+- Dates/times: `en-US` formats (`src/lib/dates.ts`). AI drafts follow the language of the user's notes
+  (`LANGUAGE_RULE` in `src/lib/prompts/language.ts`).
 - No emoji in UI. No pre-filled form fields. Quiet, minimal design. Dark mode supported.
 - Same fixed color per category on every screen.
 
@@ -145,7 +148,7 @@ Rules
 - Font: Pretendard Variable via `next/font/local` (`src/app/fonts/`, OFL-1.1) → `font-sans`.
 - Dark mode follows the OS (`prefers-color-scheme`); `dark:` variant is media-based. A manual toggle later
   needs a class strategy.
-- AI drafts: `bg-ai-surface text-ai-foreground` + an 'AI 초안' label, always visually distinct from user text.
+- AI drafts: `bg-ai-surface text-ai-foreground` + an 'AI draft' label, always visually distinct from user text.
 - Category colors: 8 fixed pastels in `src/lib/categories.ts` — rose #E8B4BC, sage #B8C9B0,
   dusty_blue #AFC3D6, lavender #C9B8D9, butter #EBD9A8, peach #EFC2A6, mint #B5D6CF, greige #CFC4B8.
   Render with `<CategoryBadge>` (pill, pastel bg + computed dark tone, same in both modes). Text tone is

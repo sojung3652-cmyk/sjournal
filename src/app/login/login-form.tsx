@@ -18,11 +18,11 @@ export function LoginForm() {
   return (
     <form action={isLogin ? loginAction : signupAction} className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
-        <Label htmlFor="email">이메일</Label>
+        <Label htmlFor="email">Email</Label>
         <Input id="email" name="email" type="email" autoComplete="email" required />
       </div>
       <div className="flex flex-col gap-2">
-        <Label htmlFor="password">비밀번호</Label>
+        <Label htmlFor="password">Password</Label>
         <Input
           id="password"
           name="password"
@@ -37,14 +37,14 @@ export function LoginForm() {
       {state?.message && <p className="text-sm text-muted-foreground">{state.message}</p>}
 
       <Button type="submit" disabled={pending}>
-        {isLogin ? "로그인" : "회원가입"}
+        {isLogin ? "Log in" : "Sign up"}
       </Button>
       <button
         type="button"
         className="text-sm text-muted-foreground underline-offset-4 hover:underline"
         onClick={() => setMode(isLogin ? "signup" : "login")}
       >
-        {isLogin ? "계정이 없으신가요? 회원가입" : "이미 계정이 있으신가요? 로그인"}
+        {isLogin ? "No account? Sign up" : "Already have an account? Log in"}
       </button>
     </form>
   );

@@ -17,7 +17,7 @@ import { getUserContext } from "@/lib/user";
 export default function DayPage({ params }: PageProps<"/day/[date]">) {
   return (
     <PageContainer>
-      <Suspense fallback={<p className="text-sm text-muted-foreground">불러오는 중</p>}>
+      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading</p>}>
         <Day params={params} />
       </Suspense>
     </PageContainer>
@@ -36,45 +36,45 @@ async function Day({ params }: { params: PageProps<"/day/[date]">["params"] }) {
   return (
     <div className="flex flex-col gap-4">
       <header className="mb-2 flex items-center justify-between gap-2">
-        <Link href={`/day/${addDays(date, -1)}`} className={nav} aria-label="이전 날">
+        <Link href={`/day/${addDays(date, -1)}`} className={nav} aria-label="Previous day">
           <ChevronLeft />
         </Link>
         <div className="text-center">
           <h1 className="text-xl font-semibold">{formatDayLong(date)}</h1>
           {date === today ? (
             <Link href="/" className="text-xs text-muted-foreground hover:text-foreground">
-              오늘 화면으로
+              Go to Today
             </Link>
           ) : (
             <Link href={`/day/${today}`} className="text-xs text-muted-foreground hover:text-foreground">
-              오늘로 이동
+              Jump to today
             </Link>
           )}
         </div>
-        <Link href={`/day/${addDays(date, 1)}`} className={nav} aria-label="다음 날">
+        <Link href={`/day/${addDays(date, 1)}`} className={nav} aria-label="Next day">
           <ChevronRight />
         </Link>
       </header>
 
-      <Section title="계획">
-        <ItemChecklist items={planned} categories={categories} empty="이 날 계획한 항목이 없습니다." />
+      <Section title="Plan">
+        <ItemChecklist items={planned} categories={categories} empty="Nothing was planned for this day." />
       </Section>
 
-      <Section title="완료">
-        <ItemChecklist items={completed} categories={categories} uncheckedStatus="in_progress" empty="이 날 완료한 항목이 없습니다." />
+      <Section title="Done">
+        <ItemChecklist items={completed} categories={categories} uncheckedStatus="in_progress" empty="Nothing was completed this day." />
       </Section>
 
-      <Section title="노트">
-        <NoteList notes={notes} categories={categories} timezone={timezone} empty="이 날 노트가 없습니다." />
+      <Section title="Notes">
+        <NoteList notes={notes} categories={categories} timezone={timezone} empty="No notes for this day." />
       </Section>
 
-      <Section title="저널">
+      <Section title="Journal">
         <div className="flex flex-col gap-3">
           {log?.reflection && <p className="text-sm">&ldquo;{log.reflection}&rdquo;</p>}
           {journal.success && <JournalView journal={journal.data} />}
           {guide.success && <GuideView guide={guide.data} />}
           {!log?.reflection && !journal.success && !guide.success && (
-            <p className="text-sm text-muted-foreground">이 날 저널이 없습니다.</p>
+            <p className="text-sm text-muted-foreground">No journal for this day.</p>
           )}
         </div>
       </Section>

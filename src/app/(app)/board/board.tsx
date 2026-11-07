@@ -82,9 +82,9 @@ export function Board({ items, categories }: { items: BoardItem[]; categories: B
     <div className="flex flex-col gap-5">
       <AddItemForm categories={categories} />
 
-      <div className="flex flex-wrap gap-2" role="group" aria-label="카테고리 필터">
+      <div className="flex flex-wrap gap-2" role="group" aria-label="Category filter">
         <FilterChip active={filter === "all"} onClick={() => setFilter("all")}>
-          전체
+          All
         </FilterChip>
         {categories.map((c) => (
           <FilterChip key={c.id} active={filter === c.id} onClick={() => setFilter(c.id)}>
@@ -92,7 +92,7 @@ export function Board({ items, categories }: { items: BoardItem[]; categories: B
           </FilterChip>
         ))}
         <FilterChip active={filter === "none"} onClick={() => setFilter("none")}>
-          미분류
+          Uncategorized
         </FilterChip>
       </div>
 
@@ -190,7 +190,7 @@ function Column({
         {label}
         <span className="text-xs font-normal text-muted-foreground">{items.length}</span>
       </h2>
-      {items.length === 0 && <p className="px-1 py-4 text-center text-xs text-muted-foreground">비어 있음</p>}
+      {items.length === 0 && <p className="px-1 py-4 text-center text-xs text-muted-foreground">Empty</p>}
       {items.map((it) => (
         <DraggableCard
           key={it.id}
@@ -239,7 +239,7 @@ function DraggableCard({
           size="icon-sm"
           variant="ghost"
           className="m-1"
-          aria-label={`${item.title} 메뉴`}
+          aria-label={`${item.title} menu`}
           aria-expanded={menuOpen}
           onClick={() => {
             setMenuOpen((v) => !v);
@@ -254,7 +254,7 @@ function DraggableCard({
           <div className="flex flex-wrap gap-1">
             {STUDY_STATUSES.filter((s) => s.key !== item.status).map((s) => (
               <Button key={s.key} size="xs" variant="outline" onClick={() => onMove(item.id, s.key)}>
-                {s.label}로
+                Move to {s.label}
               </Button>
             ))}
           </div>
@@ -267,7 +267,7 @@ function DraggableCard({
                 setEditing(true);
               }}
             >
-              수정
+              Edit
             </Button>
             {confirmDelete ? (
               <Button
@@ -276,11 +276,11 @@ function DraggableCard({
                 disabled={pending}
                 onClick={() => startTransition(async () => void (await deleteItem(item.id)))}
               >
-                삭제 확인
+                Confirm delete
               </Button>
             ) : (
               <Button size="xs" variant="ghost" onClick={() => setConfirmDelete(true)}>
-                삭제
+                Delete
               </Button>
             )}
           </div>
@@ -313,10 +313,10 @@ function CategorySelect({ categories, defaultValue, id }: { categories: BoardCat
       id={id}
       name="category_id"
       defaultValue={defaultValue ?? ""}
-      aria-label="카테고리"
+      aria-label="Category"
       className="h-8 rounded-lg border border-input bg-card px-2 text-sm"
     >
-      <option value="">카테고리 없음</option>
+      <option value="">No category</option>
       {categories.map((c) => (
         <option key={c.id} value={c.id}>
           {c.name}
@@ -330,10 +330,10 @@ function AddItemForm({ categories }: { categories: BoardCategory[] }) {
   const [state, action, pending] = useActionState<ItemResult, FormData>(createItem, {});
   return (
     <form action={action} className="flex flex-col gap-2 rounded-xl border bg-card p-3 sm:flex-row sm:items-center">
-      <Input name="title" placeholder="새 학습 항목" aria-label="새 학습 항목" maxLength={STUDY_TITLE_MAX} required className="sm:flex-1" />
+      <Input name="title" placeholder="New study item" aria-label="New study item" maxLength={STUDY_TITLE_MAX} required className="sm:flex-1" />
       <div className="flex gap-2">
         <CategorySelect categories={categories} id="new-item-category" />
-        <select name="status" defaultValue="backlog" aria-label="추가할 칸" className="h-8 rounded-lg border border-input bg-card px-2 text-sm">
+        <select name="status" defaultValue="backlog" aria-label="Column to add to" className="h-8 rounded-lg border border-input bg-card px-2 text-sm">
           {STUDY_STATUSES.filter((s) => s.key !== "done").map((s) => (
             <option key={s.key} value={s.key}>
               {s.label}
@@ -342,7 +342,7 @@ function AddItemForm({ categories }: { categories: BoardCategory[] }) {
         </select>
         {/* The one primary (pink) button on this screen. */}
         <Button type="submit" disabled={pending}>
-          추가
+          Add
         </Button>
       </div>
       {state.error && <p className="text-sm text-destructive">{state.error}</p>}
@@ -363,15 +363,15 @@ function EditItemForm({ item, categories, onDone }: { item: BoardItem; categorie
   return (
     <form action={action} className="flex flex-col gap-2 rounded-lg border border-accent-strong bg-card p-2">
       <input type="hidden" name="id" value={item.id} />
-      <Input name="title" defaultValue={item.title} aria-label="제목" maxLength={STUDY_TITLE_MAX} required autoFocus />
+      <Input name="title" defaultValue={item.title} aria-label="Title" maxLength={STUDY_TITLE_MAX} required autoFocus />
       <CategorySelect categories={categories} defaultValue={item.category_id} id={`edit-${item.id}-category`} />
       {state.error && <p className="text-xs text-destructive">{state.error}</p>}
       <div className="flex gap-1">
         <Button type="submit" size="xs" variant="outline" disabled={pending}>
-          저장
+          Save
         </Button>
         <Button type="button" size="xs" variant="ghost" onClick={onDone}>
-          취소
+          Cancel
         </Button>
       </div>
     </form>

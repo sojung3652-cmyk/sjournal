@@ -59,7 +59,7 @@ export async function usageToday(ctx: Ctx): Promise<number> {
  */
 export async function runStructured<T>(ctx: Ctx, spec: PromptSpec<T>, userContent: string): Promise<AiResult<T>> {
   const anthropic = getClient();
-  if (!anthropic) return { ok: false, error: "AI 기능을 사용할 수 없습니다. (ANTHROPIC_API_KEY 없음)" };
+  if (!anthropic) return { ok: false, error: "AI features are unavailable (ANTHROPIC_API_KEY is not set)." };
 
   const inputHash = createHash("sha256").update(`${spec.kind}:${spec.version}:${spec.model}\n${userContent}`).digest("hex");
 
@@ -76,7 +76,7 @@ export async function runStructured<T>(ctx: Ctx, spec: PromptSpec<T>, userConten
   }
 
   if ((await usageToday(ctx)) >= AI_DAILY_LIMIT) {
-    return { ok: false, error: `오늘 AI 사용 한도(${AI_DAILY_LIMIT}회)를 모두 썼습니다. 내일 다시 시도해 주세요.` };
+    return { ok: false, error: `You've used today's AI limit (${AI_DAILY_LIMIT}). Try again tomorrow.` };
   }
 
   let message: Anthropic.Message;
@@ -101,14 +101,14 @@ export async function runStructured<T>(ctx: Ctx, spec: PromptSpec<T>, userConten
   });
 
   if (message.stop_reason === "max_tokens") {
-    return { ok: false, error: "AI 응답이 너무 길어 잘렸습니다. 다시 시도해 주세요." };
+    return { ok: false, error: "The AI response was cut off. Please try again." };
   }
   const text = message.content
     .filter((b): b is Anthropic.TextBlock => b.type === "text")
     .map((b) => b.text)
     .join("");
   const parsed = spec.schema.safeParse(safeJson(text));
-  if (!parsed.success) return { ok: false, error: "AI 응답 형식이 올바르지 않습니다. 다시 시도해 주세요." };
+  if (!parsed.success) return { ok: false, error: "The AI response had an unexpected format. Please try again." };
 
   await ctx.supabase
     .from("ai_cache")
@@ -123,12 +123,12 @@ export async function runStructured<T>(ctx: Ctx, spec: PromptSpec<T>, userConten
 function describeApiError(e: unknown): string {
   if (e instanceof Anthropic.APIError) {
     const msg = String(e.message ?? "");
-    if (e.status === 401) return "AI API 키가 올바르지 않습니다. .env.local의 ANTHROPIC_API_KEY를 확인해 주세요.";
-    if (e.status === 402 || /credit balance/i.test(msg)) return "AI 계정의 크레딧이 부족합니다.";
-    if (e.status === 429) return "AI 요청이 많습니다. 잠시 후 다시 시도해 주세요.";
-    if (e.status === 529 || (e.status ?? 0) >= 500) return "AI 서버가 응답하지 않습니다. 잠시 후 다시 시도해 주세요.";
+    if (e.status === 401) return "The AI API key is invalid. Check ANTHROPIC_API_KEY in .env.local.";
+    if (e.status === 402 || /credit balance/i.test(msg)) return "The AI account is out of credit.";
+    if (e.status === 429) return "Too many AI requests. Please try again shortly.";
+    if (e.status === 529 || (e.status ?? 0) >= 500) return "The AI service isn't responding. Please try again shortly.";
   }
-  return "AI 요청에 실패했습니다. 잠시 후 다시 시도해 주세요.";
+  return "The AI request failed. Please try again shortly.";
 }
 
 /** Tolerant JSON parse (Rule 5): strips code fences / surrounding prose; returns undefined on failure. */
@@ -146,5 +146,5 @@ export function safeJson(text: string): unknown {
 
 /** Clip long text so prompts stay within budget. */
 export function clip(text: string, max: number): string {
-  return text.length > max ? `${text.slice(0, max)}\n…(생략)` : text;
+  return text.length > max ? `${text.slice(0, max)}\n…(truncated)` : text;
 }

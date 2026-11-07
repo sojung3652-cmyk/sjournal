@@ -14,7 +14,7 @@ import { NoteView } from "./note-view";
 export default function NotePage({ params }: PageProps<"/notes/[id]">) {
   return (
     <PageContainer>
-      <Suspense fallback={<p className="text-sm text-muted-foreground">불러오는 중</p>}>
+      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading</p>}>
         <Note params={params} />
       </Suspense>
     </PageContainer>
@@ -61,7 +61,7 @@ async function Note({ params }: { params: PageProps<"/notes/[id]">["params"] }) 
     <div className="flex flex-col gap-4">
       <Link href={`/day/${day}`} className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
         <ChevronLeft className="size-4" />
-        데일리 페이지
+        Daily page
       </Link>
       <NoteView
         note={{

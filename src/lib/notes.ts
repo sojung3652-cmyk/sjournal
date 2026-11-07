@@ -3,11 +3,11 @@ export const TAG_MAX = 30;
 export const TAGS_PER_NOTE_MAX = 10;
 
 export const SOURCE_LABEL: Record<string, string> = {
-  text: "메모",
-  link: "링크",
-  image: "이미지",
+  text: "Memo",
+  link: "Link",
+  image: "Image",
   pdf: "PDF",
-  claude_chat: "대화",
+  claude_chat: "Chat",
 };
 
 export function isUrl(text: string): boolean {

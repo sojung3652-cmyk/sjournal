@@ -52,7 +52,7 @@ export function CategoryManager({
   return (
     <section className="flex flex-col gap-6">
       {categories.length === 0 ? (
-        <p className="text-sm text-muted-foreground">카테고리가 없습니다. 아래에서 추가해 주세요.</p>
+        <p className="text-sm text-muted-foreground">No categories yet. Add one below.</p>
       ) : (
         <ul className="flex flex-col divide-y rounded-xl border bg-card">
           {categories.map((category, index) => (
@@ -73,12 +73,12 @@ export function CategoryManager({
 
                   {confirmingId === category.id ? (
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground">삭제할까요?</span>
+                      <span className="text-xs text-muted-foreground">Delete this?</span>
                       <Button size="sm" variant="destructive" disabled={pending} onClick={() => remove(category.id)}>
-                        삭제
+                        Delete
                       </Button>
                       <Button size="sm" variant="ghost" onClick={() => setConfirmingId(null)}>
-                        취소
+                        Cancel
                       </Button>
                     </div>
                   ) : (
@@ -86,7 +86,7 @@ export function CategoryManager({
                       <Button
                         size="icon-sm"
                         variant="ghost"
-                        aria-label={`${category.name} 위로`}
+                        aria-label={`Move ${category.name} up`}
                         disabled={pending || index === 0}
                         onClick={() => move(index, -1)}
                       >
@@ -95,7 +95,7 @@ export function CategoryManager({
                       <Button
                         size="icon-sm"
                         variant="ghost"
-                        aria-label={`${category.name} 아래로`}
+                        aria-label={`Move ${category.name} down`}
                         disabled={pending || index === categories.length - 1}
                         onClick={() => move(index, 1)}
                       >
@@ -104,7 +104,7 @@ export function CategoryManager({
                       <Button
                         size="icon-sm"
                         variant="ghost"
-                        aria-label={`${category.name} 수정`}
+                        aria-label={`Edit ${category.name}`}
                         onClick={() => {
                           setConfirmingId(null);
                           setEditingId(category.id);
@@ -115,7 +115,7 @@ export function CategoryManager({
                       <Button
                         size="icon-sm"
                         variant="ghost"
-                        aria-label={`${category.name} 삭제`}
+                        aria-label={`Delete ${category.name}`}
                         onClick={() => {
                           setEditingId(null);
                           setConfirmingId(category.id);
@@ -134,13 +134,13 @@ export function CategoryManager({
 
       {confirmingId && (
         <p className="text-xs text-muted-foreground">
-          삭제해도 이 카테고리의 학습 항목과 노트는 남고, 카테고리만 비워집니다.
+          Deleting keeps this category&apos;s items and notes; they just become uncategorized.
         </p>
       )}
       {error && <p className="text-sm text-destructive">{error}</p>}
 
       <div className="flex flex-col gap-3 rounded-xl border bg-card p-4">
-        <h3 className="text-sm font-medium">새 카테고리</h3>
+        <h3 className="text-sm font-medium">New category</h3>
         <CategoryForm mode="create" />
       </div>
     </section>
@@ -172,7 +172,7 @@ function CategoryForm({
       {category && <input type="hidden" name="id" value={category.id} />}
       <div className="flex flex-col gap-2">
         <Label htmlFor={`${idPrefix}-name`} className={mode === "edit" ? "sr-only" : undefined}>
-          이름
+          Name
         </Label>
         <Input
           id={`${idPrefix}-name`}
@@ -185,7 +185,7 @@ function CategoryForm({
       </div>
 
       <fieldset className="flex flex-col gap-2">
-        <legend className="mb-2 text-sm font-medium">색상</legend>
+        <legend className="mb-2 text-sm font-medium">Color</legend>
         <div className="flex flex-wrap gap-2">
           {CATEGORY_COLORS.map((c) => (
             <label key={c.key} className="cursor-pointer" title={c.label}>
@@ -210,13 +210,13 @@ function CategoryForm({
       {state.error && <p className="text-sm text-destructive">{state.error}</p>}
 
       <div className="flex gap-2">
-        {/* Design rule: only one primary (pink) button per screen — "추가". */}
+        {/* Design rule: only one primary (pink) button per screen — "Add". */}
         <Button type="submit" size="sm" variant={mode === "create" ? "default" : "outline"} disabled={pending}>
-          {mode === "create" ? "추가" : "저장"}
+          {mode === "create" ? "Add" : "Save"}
         </Button>
         {mode === "edit" && (
           <Button type="button" size="sm" variant="ghost" onClick={onDone}>
-            취소
+            Cancel
           </Button>
         )}
       </div>
@@ -229,9 +229,9 @@ function StatsLine({ stats }: { stats?: CategoryStats }) {
   const progress = stats.total ? Math.round((stats.done / stats.total) * 100) : 0;
   return (
     <p className="text-xs text-muted-foreground">
-      노트 {stats.notes} · 완료 {stats.done}/{stats.total}
+      {stats.notes} notes · {stats.done}/{stats.total} done
       {stats.total > 0 && ` (${progress}%)`}
-      {stats.lastStudied && ` · 최근 ${stats.lastStudied}`}
+      {stats.lastStudied && ` · last ${stats.lastStudied}`}
     </p>
   );
 }

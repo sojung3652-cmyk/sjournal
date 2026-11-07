@@ -11,8 +11,8 @@ import { ProfileForm } from "./profile-form";
 export default function SettingsPage() {
   return (
     <PageContainer>
-      <PageHeader title="설정" />
-      <Suspense fallback={<p className="text-sm text-muted-foreground">불러오는 중</p>}>
+      <PageHeader title="Settings" />
+      <Suspense fallback={<p className="text-sm text-muted-foreground">Loading</p>}>
         <SettingsContent />
       </Suspense>
     </PageContainer>
@@ -31,7 +31,7 @@ async function SettingsContent() {
   return (
     <div className="flex flex-col gap-6">
       <section className="rounded-xl border bg-card p-5">
-        <h2 className="mb-4 text-sm font-medium">프로필</h2>
+        <h2 className="mb-4 text-sm font-medium">Profile</h2>
         <ProfileForm
           timezone={timezone}
           displayName={displayName}
@@ -40,20 +40,20 @@ async function SettingsContent() {
       </section>
 
       <section className="rounded-xl border bg-card p-5">
-        <h2 className="mb-2 text-sm font-medium">AI 사용량</h2>
+        <h2 className="mb-2 text-sm font-medium">AI usage</h2>
         <p className="text-sm text-muted-foreground">
-          오늘 {count ?? 0} / {AI_DAILY_LIMIT}회 사용
+          Today: {count ?? 0} / {AI_DAILY_LIMIT} used
         </p>
       </section>
 
       <section className="flex items-center justify-between rounded-xl border bg-card p-5">
         <div>
-          <h2 className="text-sm font-medium">계정</h2>
+          <h2 className="text-sm font-medium">Account</h2>
           <p className="text-sm text-muted-foreground">{email}</p>
         </div>
         <form action={logout}>
           <Button type="submit" variant="outline" size="sm">
-            로그아웃
+            Log out
           </Button>
         </form>
       </section>

@@ -9,15 +9,15 @@ export type ReflectionResult = { error?: string; ok?: boolean };
 
 export async function saveReflection(_prev: ReflectionResult, formData: FormData): Promise<ReflectionResult> {
   const ctx = await getActionContext();
-  if (!ctx) return { error: "로그인이 필요합니다." };
+  if (!ctx) return { error: "Please log in." };
   const day = String(formData.get("day") ?? ctx.today);
-  if (!isValidDay(day)) return { error: "날짜가 올바르지 않습니다." };
+  if (!isValidDay(day)) return { error: "Invalid date." };
   const reflection = String(formData.get("reflection") ?? "").trim().slice(0, 2000);
 
   const logId = await ensureDailyLog(ctx.supabase, ctx.userId, day);
-  if (!logId) return { error: "저장하지 못했습니다." };
+  if (!logId) return { error: "Couldn't save." };
   const { error } = await ctx.supabase.from("daily_logs").update({ reflection: reflection || null }).eq("id", logId);
-  if (error) return { error: "저장하지 못했습니다." };
+  if (error) return { error: "Couldn't save." };
 
   refresh();
   return { ok: true };

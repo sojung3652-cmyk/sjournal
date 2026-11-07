@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { MODELS } from "@/lib/ai/models";
 import type { PromptSpec } from "@/lib/ai/run";
+import { LANGUAGE_RULE } from "./language";
 
 export const summarySchema = z.object({
   one_line: z.string().min(1).max(200),
@@ -13,20 +14,21 @@ export type NoteSummary = z.infer<typeof summarySchema>;
 
 export const summarizePrompt: PromptSpec<NoteSummary> = {
   kind: "summarize",
-  version: "2",
+  version: "3",
   model: MODELS.fast,
   maxTokens: 3000,
   system: [
-    "너는 학습 노트를 정리하는 편집자다. 대신 공부해 주는 것이 아니라, 학습자가 쓴 내용을 정리한다.",
-    "노트에서 핵심 개념 3~5개를 뽑아 각각 1~2문장으로 설명하고, 전체를 한 줄로 요약한다.",
-    "- 노트에 없는 내용을 지어내지 않는다. 불확실하면 노트 표현을 그대로 쓴다.",
-    "- 한국어로, 간결하게.",
+    "You are an editor who organizes a learner's study note. You summarize what they wrote; you do not study for them.",
+    "Extract 3-5 key concepts, explain each in 1-2 sentences, and write a one-line summary of the whole note.",
+    "- Do not add content that is not in the note. When unsure, reuse the note's wording.",
+    "- Be concise.",
+    LANGUAGE_RULE,
   ].join("\n"),
   jsonSchema: {
     type: "object",
     additionalProperties: false,
     properties: {
-      one_line: { type: "string", description: "한 줄 요약" },
+      one_line: { type: "string", description: "one-line summary" },
       concepts: {
         type: "array",
         items: {
@@ -43,5 +45,5 @@ export const summarizePrompt: PromptSpec<NoteSummary> = {
 };
 
 export function buildSummarizeInput(note: { title: string | null; content: string }): string {
-  return [`제목: ${note.title ?? "(없음)"}`, "본문:", note.content].join("\n");
+  return [`Title: ${note.title ?? "(none)"}`, "Content:", note.content].join("\n");
 }
