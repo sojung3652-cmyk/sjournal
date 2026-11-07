@@ -100,14 +100,33 @@ export async function getCategoryRecords(
   return out.sort((a, b) => (a.at < b.at ? 1 : -1));
 }
 
-/** Links for a category. Filled in by the link archive feature; returns [] until then. */
-async function getCategoryLinks(
-  _supabase: Client,
-  _categoryId: string,
-  _startIso: string | null,
-  _endIso: string,
-): Promise<Omit<CategoryRecord, "day">[]> {
-  return [];
+/** Links in a category (by saved time). */
+async function getCategoryLinks(supabase: Client, categoryId: string, startIso: string | null, endIso: string): Promise<Omit<CategoryRecord, "day">[]> {
+  let q = supabase
+    .from("links")
+    .select("id, url, title, site_name, image_url, favicon_url, ai_summary, keywords, fetch_status, created_at")
+    .eq("category_id", categoryId)
+    .lt("created_at", endIso)
+    .order("created_at", { ascending: false })
+    .limit(300);
+  if (startIso) q = q.gte("created_at", startIso);
+  const { data } = await q;
+  return (data ?? []).map((l) => {
+    const lines = (l.ai_summary as { lines?: unknown } | null)?.lines;
+    return {
+      kind: "link" as const,
+      id: l.id,
+      title: l.title ?? l.url,
+      at: l.created_at,
+      tags: l.keywords ?? [],
+      url: l.url,
+      siteName: l.site_name,
+      imageUrl: l.image_url,
+      faviconUrl: l.favicon_url,
+      summary: Array.isArray(lines) ? lines.filter((x): x is string => typeof x === "string") : [],
+      fetchStatus: l.fetch_status,
+    };
+  });
 }
 
 export function categoryStats(records: CategoryRecord[]) {

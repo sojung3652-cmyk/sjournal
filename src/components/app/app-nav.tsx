@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Search } from "lucide-react";
+import { Search, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { NAV_ITEMS, isActive } from "./nav-items";
+import { NAV_ITEMS, TAB_ITEMS, isActive } from "./nav-items";
 
 /** Desktop: left sidebar. */
 export function SideNav() {
@@ -58,9 +58,14 @@ export function MobileTopBar() {
       <Link href="/" className="text-sm font-semibold">
         Study Journal
       </Link>
-      <Link href="/search" aria-label="Search" className="rounded-lg p-2 text-muted-foreground hover:bg-muted">
-        <Search className="size-5" />
-      </Link>
+      <div className="flex items-center">
+        <Link href="/search" aria-label="Search" className="rounded-lg p-2 text-muted-foreground hover:bg-muted">
+          <Search className="size-5" />
+        </Link>
+        <Link href="/settings" aria-label="Settings" className="rounded-lg p-2 text-muted-foreground hover:bg-muted">
+          <Settings className="size-5" />
+        </Link>
+      </div>
     </header>
   );
 }
@@ -75,7 +80,7 @@ export function BottomTabsView({ pathname }: { pathname: string }) {
       aria-label="Main menu"
       className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-5 border-t bg-card pb-[env(safe-area-inset-bottom)] md:hidden"
     >
-      {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+      {TAB_ITEMS.map(({ href, label, icon: Icon }) => {
         const active = isActive(pathname, href);
         return (
           <Link

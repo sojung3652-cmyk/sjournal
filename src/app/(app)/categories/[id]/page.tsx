@@ -6,6 +6,8 @@ import { PageContainer } from "@/components/app/page-container";
 import { Section } from "@/components/app/section";
 import { CategoryBadge } from "@/components/category-badge";
 import { plainPreview } from "@/components/day/note-list";
+import { LinkCard, LinkGrid, type LinkCardData } from "@/components/links/link-card";
+import { PendingRefresher } from "@/components/links/pending-refresher";
 import { aiAvailable } from "@/lib/ai/run";
 import {
   RANGE_LABEL,
@@ -63,6 +65,20 @@ async function Detail({
     supabase.from("category_summaries").select("id, period_start, period_end, content, created_at").eq("category_id", id).order("created_at", { ascending: false }).limit(20),
   ]);
   const stats = categoryStats(all);
+  const linkCards: LinkCardData[] = all
+    .filter((r) => r.kind === "link")
+    .map((r) => ({
+      id: r.id,
+      url: r.url ?? "",
+      title: r.title,
+      site_name: r.siteName ?? null,
+      image_url: r.imageUrl ?? null,
+      favicon_url: r.faviconUrl ?? null,
+      ai_summary: { lines: r.summary ?? [] },
+      category_id: id,
+      created_at: r.at,
+      fetch_status: r.fetchStatus ?? "done",
+    }));
   const records = type === "all" ? all : all.filter((r) => r.kind === type);
 
   const href = (patch: Partial<{ type: RecordType; range: RangeKey; group: string }>) => {
@@ -120,10 +136,27 @@ async function Detail({
       >
         {records.length === 0 ? (
           <p className="text-sm text-muted-foreground">Nothing recorded for this filter.</p>
+        ) : type === "link" && !byTag ? (
+          <LinkGrid>
+            {linkCards.map((l) => (
+              <LinkCard key={l.id} link={l} category={{ name: category.name, color: category.color }} timezone={timezone} />
+            ))}
+          </LinkGrid>
         ) : (
           <Grouped records={records} byTag={byTag} />
         )}
       </Section>
+
+      {linkCards.length > 0 && type === "all" && (
+        <Section title={`Links · ${linkCards.length}`}>
+          <PendingRefresher active={linkCards.some((l) => l.fetch_status === "pending")} />
+          <LinkGrid>
+            {linkCards.map((l) => (
+              <LinkCard key={l.id} link={l} category={{ name: category.name, color: category.color }} timezone={timezone} />
+            ))}
+          </LinkGrid>
+        </Section>
+      )}
 
       <Section title="Past summaries">
         {/* key: remount when a new summary is saved so the newest one opens */}

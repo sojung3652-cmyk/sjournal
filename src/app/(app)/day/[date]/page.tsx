@@ -7,6 +7,8 @@ import { Section } from "@/components/app/section";
 import { GuideView, JournalView } from "@/components/ai/day-ai";
 import { ItemChecklist } from "@/components/day/item-checklist";
 import { NoteList } from "@/components/day/note-list";
+import { LinkCard, LinkGrid } from "@/components/links/link-card";
+import { PendingRefresher } from "@/components/links/pending-refresher";
 import { buttonVariants } from "@/components/ui/button";
 import { getDayData } from "@/lib/data/day";
 import { addDays, formatDayLong, isValidDay } from "@/lib/dates";
@@ -28,7 +30,8 @@ async function Day({ params }: { params: PageProps<"/day/[date]">["params"] }) {
   const { date } = await params;
   if (!isValidDay(date)) notFound();
   const { supabase, timezone, today } = await getUserContext();
-  const { categories, log, planned, completed, notes } = await getDayData(supabase, date, timezone);
+  const { categories, log, planned, completed, notes, links } = await getDayData(supabase, date, timezone);
+  const catById = new Map(categories.map((c) => [c.id, c]));
   const journal = journalSchema.safeParse(log?.ai_journal);
   const guide = guideSchema.safeParse(log?.ai_guide);
   const nav = buttonVariants({ variant: "ghost", size: "icon-sm" });
@@ -67,6 +70,17 @@ async function Day({ params }: { params: PageProps<"/day/[date]">["params"] }) {
       <Section title="Notes">
         <NoteList notes={notes} categories={categories} timezone={timezone} empty="No notes for this day." />
       </Section>
+
+      {links.length > 0 && (
+        <Section title="Links">
+          <PendingRefresher active={links.some((l) => l.fetch_status === "pending")} />
+          <LinkGrid>
+            {links.map((l) => (
+              <LinkCard key={l.id} link={l} category={l.category_id ? catById.get(l.category_id) : undefined} timezone={timezone} />
+            ))}
+          </LinkGrid>
+        </Section>
+      )}
 
       <Section title="Journal">
         <div className="flex flex-col gap-3">

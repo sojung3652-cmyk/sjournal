@@ -222,6 +222,91 @@ export type Database = {
         }
         Relationships: []
       }
+      links: {
+        Row: {
+          ai_summary: Json | null
+          category_id: string | null
+          created_at: string
+          daily_log_id: string | null
+          description: string | null
+          favicon_url: string | null
+          fetch_status: string
+          id: string
+          image_url: string | null
+          keywords: string[]
+          note: string | null
+          search_text: string
+          site_name: string | null
+          suggested_category_id: string | null
+          title: string | null
+          updated_at: string
+          url: string
+          user_id: string
+        }
+        Insert: {
+          ai_summary?: Json | null
+          category_id?: string | null
+          created_at?: string
+          daily_log_id?: string | null
+          description?: string | null
+          favicon_url?: string | null
+          fetch_status?: string
+          id?: string
+          image_url?: string | null
+          keywords?: string[]
+          note?: string | null
+          search_text?: string
+          site_name?: string | null
+          suggested_category_id?: string | null
+          title?: string | null
+          updated_at?: string
+          url: string
+          user_id?: string
+        }
+        Update: {
+          ai_summary?: Json | null
+          category_id?: string | null
+          created_at?: string
+          daily_log_id?: string | null
+          description?: string | null
+          favicon_url?: string | null
+          fetch_status?: string
+          id?: string
+          image_url?: string | null
+          keywords?: string[]
+          note?: string | null
+          search_text?: string
+          site_name?: string | null
+          suggested_category_id?: string | null
+          title?: string | null
+          updated_at?: string
+          url?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "links_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "links_daily_log_id_fkey"
+            columns: ["daily_log_id"]
+            isOneToOne: false
+            referencedRelation: "daily_logs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "links_suggested_category_id_fkey"
+            columns: ["suggested_category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       note_tags: {
         Row: {
           created_at: string

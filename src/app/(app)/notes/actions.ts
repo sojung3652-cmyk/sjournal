@@ -4,12 +4,16 @@ import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { ensureDailyLog } from "@/lib/data/day";
 import { setNoteTags } from "@/lib/data/tags";
+import { createLink } from "@/lib/links/create";
 import { getActionContext } from "@/lib/user";
 import { NOTE_CONTENT_MAX, deriveTitle, isUrl, parseTags } from "@/lib/notes";
 
-export type NoteResult = { error?: string; ok?: boolean; noteId?: string };
+export type NoteResult = { error?: string; ok?: boolean; noteId?: string; linkId?: string };
 
-/** Quick add (text or link). Notes always attach to today's daily log. */
+/**
+ * Quick add. A bare URL goes to the link archive (links table, previews + AI summary);
+ * anything else becomes a note. Both attach to today's daily log.
+ */
 export async function quickAddText(_prev: NoteResult, formData: FormData): Promise<NoteResult> {
   const ctx = await getActionContext();
   if (!ctx) return { error: "Please log in." };
@@ -17,15 +21,21 @@ export async function quickAddText(_prev: NoteResult, formData: FormData): Promi
   if (!text) return { error: "Write something first." };
   if (text.length > NOTE_CONTENT_MAX) return { error: "That's too long." };
 
+  if (isUrl(text)) {
+    const res = await createLink(ctx, text);
+    if (!res.ok) return { error: res.error };
+    refresh();
+    return { ok: true, linkId: res.id };
+  }
+
   const dailyLogId = await ensureDailyLog(ctx.supabase, ctx.userId, ctx.today);
-  const link = isUrl(text);
   const { data, error } = await ctx.supabase
     .from("notes")
     .insert({
       daily_log_id: dailyLogId,
       title: deriveTitle(text),
       content: text,
-      source_type: link ? "link" : "text",
+      source_type: "text",
     })
     .select("id")
     .single();

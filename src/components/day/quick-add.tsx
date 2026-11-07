@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Paperclip } from "lucide-react";
 import { attachFile, createFileNote, discardNote, quickAddText, type NoteResult } from "@/app/(app)/notes/actions";
@@ -110,6 +111,15 @@ export function QuickAdd({ categories, aiEnabled }: { categories: { id: string; 
         </Button>
       </div>
       {state.error && <p className="text-sm text-destructive">{state.error}</p>}
+      {state.ok && state.linkId && (
+        <p className="text-sm text-muted-foreground">
+          Saved to{" "}
+          <Link href={`/links/${state.linkId}`} className="underline underline-offset-4">
+            Links
+          </Link>
+          . The preview and summary will appear shortly.
+        </p>
+      )}
       {fileMsg?.error && <p className="text-sm text-destructive">{fileMsg.error}</p>}
       {fileMsg?.ok && <p className="text-sm text-muted-foreground">{fileMsg.ok}</p>}
     </form>

@@ -42,6 +42,18 @@ export type DayNote = {
   ai_summary: Database["public"]["Tables"]["notes"]["Row"]["ai_summary"];
   attachments: { id: string; mime_type: string }[];
 };
+export type DayLink = {
+  id: string;
+  url: string;
+  title: string | null;
+  site_name: string | null;
+  image_url: string | null;
+  favicon_url: string | null;
+  ai_summary: unknown;
+  category_id: string | null;
+  created_at: string;
+  fetch_status: string;
+};
 export type DayLog = Database["public"]["Tables"]["daily_logs"]["Row"];
 
 /** Everything shown for one day (today screen and /day/[date]). RLS scopes all reads to the user. */
@@ -57,7 +69,14 @@ export async function getDayData(supabase: Client, day: string, tz: string) {
   ]);
 
   let notes: DayNote[] = [];
+  let links: DayLink[] = [];
   if (log.data) {
+    const { data: l } = await supabase
+      .from("links")
+      .select("id, url, title, site_name, image_url, favicon_url, ai_summary, category_id, created_at, fetch_status")
+      .eq("daily_log_id", log.data.id)
+      .order("created_at", { ascending: false });
+    links = l ?? [];
     const { data } = await supabase
       .from("notes")
       .select("id, title, content, source_type, category_id, created_at, ai_summary, attachments(id, mime_type)")
@@ -73,5 +92,6 @@ export async function getDayData(supabase: Client, day: string, tz: string) {
     completed: (completed.data ?? []) as DayItem[],
     inProgress: (inProgress.data ?? []) as DayItem[],
     notes,
+    links,
   };
 }

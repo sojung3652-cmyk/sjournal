@@ -98,6 +98,20 @@ src/types/database.ts           GENERATED Supabase types — never edit by hand
 - Search = RPC `search_notes(q)`: every word must match title/body/tags as a substring (pg_trgm-indexed ILIKE,
   LIKE chars escaped) and `simple` FTS only adds ranking. Korean has no FTS segmentation — keep the ILIKE path.
 
+### Category detail & links
+- `/categories/[id]`: records via `getCategoryRecords()` (`src/lib/data/category.ts`); filters live in the URL
+  (`?type=&range=&group=tag`). AI category summaries -> `category_summaries` (period_start null = all time).
+- Links live in `links` (not notes). Quick add with a bare URL -> `createLink()` -> `after(processLink)`:
+  metadata (`src/lib/links/metadata.ts`) then Haiku summary; `fetch_status` stays `pending` until both finish,
+  and pages with pending links auto-refresh (`<PendingRefresher>`).
+- **All server fetches of user URLs go through `safeFetch()`** (`src/lib/links/safe-fetch.ts`): http/https on
+  80/443 only, connect-time DNS check against private/loopback/link-local/metadata ranges (incl. IPv4-mapped,
+  NAT64, 6to4), manual redirects (max 3, re-checked), 5s timeout, 1MB cap. Never call `fetch(userUrl)` directly.
+- Display-only URLs (og:image, favicon) are stored only if `isPublicUrl()` passes (the browser loads them).
+  Failed fetches store no favicon guess. Third-party images render with `referrerPolicy="no-referrer"`.
+- `links.search_text` (trigger-maintained) feeds search; LIKE wildcards are escaped.
+- The AI's recommended category is shown with an Apply button, never auto-applied.
+
 ### AI
 - Server only: `src/app/(app)/ai-actions.ts` -> `runStructured()` in `src/lib/ai/run.ts`. `ANTHROPIC_API_KEY` is never
   `NEXT_PUBLIC_` and never reaches the browser.
@@ -105,7 +119,8 @@ src/types/database.ts           GENERATED Supabase types — never edit by hand
   Sonnet `claude-sonnet-5-5` (journal, guide). Sonnet thinks first: keep `maxTokens` headroom (8000).
 - Output = structured outputs (`output_config.format` JSON schema), NOT forced tool_choice — Sonnet 5.5 returns 400
   for tool_choice "tool"/"any". The JSON schema may not use minItems > 1 / maxItems; enforce counts in zod.
-- Parse with `safeJson()` + zod `safeParse` (Rule 5). Never trust the shape.
+- Parse with `safeJson()` + zod `safeParse` (Rule 5). Never trust the shape. Use the tolerant helpers in
+  `src/lib/prompts/zod-tolerant.ts` (clip + drop empties) — strict max lengths made valid responses fail.
 - Prompts: one file per feature in `src/lib/prompts/`; bump `version` when a prompt changes (it is part of the cache key).
 - Order per call: same-day cache (`ai_cache`) -> daily limit (50, `AI_DAILY_LIMIT`, counted in user tz) -> API ->
   log `ai_runs` (append-only: no update/delete policy, so users can't reset the limit) -> cache.
