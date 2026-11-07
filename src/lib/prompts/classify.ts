@@ -1,10 +1,11 @@
 import { z } from "zod";
 import { MODELS } from "@/lib/ai/models";
 import type { PromptSpec } from "@/lib/ai/run";
+import { strList } from "./zod-tolerant";
 
 export const classifySchema = z.object({
-  category: z.string().nullable(),
-  tags: z.array(z.string().min(1).max(30)).min(1).transform((t) => t.slice(0, 4)),
+  category: z.string().nullable().default(null),
+  tags: strList(30, 4, 1),
 });
 export type Classification = z.infer<typeof classifySchema>;
 

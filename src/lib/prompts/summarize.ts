@@ -2,13 +2,11 @@ import { z } from "zod";
 import { MODELS } from "@/lib/ai/models";
 import type { PromptSpec } from "@/lib/ai/run";
 import { LANGUAGE_RULE } from "./language";
+import { objList, str } from "./zod-tolerant";
 
 export const summarySchema = z.object({
-  one_line: z.string().min(1).max(200),
-  concepts: z
-    .array(z.object({ name: z.string().min(1).max(60), explanation: z.string().min(1).max(300) }))
-    .min(1)
-    .transform((c) => c.slice(0, 5)),
+  one_line: str(300).refine(Boolean, { message: "empty" }),
+  concepts: objList(z.object({ name: str(80), explanation: str(400) }), 5, (c) => Boolean(c.name && c.explanation), 1),
 });
 export type NoteSummary = z.infer<typeof summarySchema>;
 

@@ -9,7 +9,7 @@ import type { Json } from "@/types/database";
 
 type Ctx = NonNullable<Awaited<ReturnType<typeof getActionContext>>>;
 
-export type AiKind = "classify" | "summarize" | "journal" | "guide";
+export type AiKind = "classify" | "summarize" | "journal" | "guide" | "category_summary" | "link_summary";
 
 export type PromptSpec<T> = {
   kind: AiKind;
@@ -108,7 +108,11 @@ export async function runStructured<T>(ctx: Ctx, spec: PromptSpec<T>, userConten
     .map((b) => b.text)
     .join("");
   const parsed = spec.schema.safeParse(safeJson(text));
-  if (!parsed.success) return { ok: false, error: "The AI response had an unexpected format. Please try again." };
+  if (!parsed.success) {
+    // Paths only (no content) so failures can be diagnosed from server logs.
+    console.warn(`[ai] ${spec.kind} response failed validation:`, parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; "));
+    return { ok: false, error: "The AI response had an unexpected format. Please try again." };
+  }
 
   await ctx.supabase
     .from("ai_cache")

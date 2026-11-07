@@ -2,14 +2,17 @@ import { z } from "zod";
 import { MODELS } from "@/lib/ai/models";
 import type { PromptSpec } from "@/lib/ai/run";
 import { LANGUAGE_RULE } from "./language";
+import { objList, str, strList } from "./zod-tolerant";
 
 export const guideSchema = z.object({
-  tasks: z
-    .array(z.object({ title: z.string().min(1).max(120), category: z.string().nullable(), reason: z.string().max(200) }))
-    .min(1)
-    .transform((t) => t.slice(0, 3)),
-  review: z.array(z.string().min(1).max(120)).transform((r) => r.slice(0, 5)),
-  tips: z.array(z.string().min(1).max(300)).transform((t) => t.slice(0, 4)),
+  tasks: objList(
+    z.object({ title: str(160), category: z.string().nullable().default(null), reason: z.string().default("").transform((r) => r.trim().slice(0, 300)) }),
+    3,
+    (t) => Boolean(t.title),
+    1,
+  ),
+  review: strList(160, 5),
+  tips: strList(400, 4),
 });
 export type Guide = z.infer<typeof guideSchema>;
 

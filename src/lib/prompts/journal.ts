@@ -2,12 +2,9 @@ import { z } from "zod";
 import { MODELS } from "@/lib/ai/models";
 import type { PromptSpec } from "@/lib/ai/run";
 import { LANGUAGE_RULE } from "./language";
+import { strList } from "./zod-tolerant";
 
-const lines = (min: number) =>
-  z
-    .array(z.string().min(1).max(300))
-    .min(min)
-    .transform((l) => l.slice(0, 6));
+const lines = (min: number) => strList(400, 6, min);
 export const journalSchema = z.object({
   learned: lines(1),
   difficult: lines(0),

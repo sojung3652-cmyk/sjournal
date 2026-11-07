@@ -145,6 +145,44 @@ export type Database = {
         }
         Relationships: []
       }
+      category_summaries: {
+        Row: {
+          category_id: string
+          content: Json
+          created_at: string
+          id: string
+          period_end: string
+          period_start: string | null
+          user_id: string
+        }
+        Insert: {
+          category_id: string
+          content: Json
+          created_at?: string
+          id?: string
+          period_end: string
+          period_start?: string | null
+          user_id?: string
+        }
+        Update: {
+          category_id?: string
+          content?: Json
+          created_at?: string
+          id?: string
+          period_end?: string
+          period_start?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "category_summaries_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       daily_logs: {
         Row: {
           ai_guide: Json | null

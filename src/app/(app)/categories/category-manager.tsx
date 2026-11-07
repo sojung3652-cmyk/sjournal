@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { ArrowDown, ArrowUp, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -66,10 +67,14 @@ export function CategoryManager({
                 />
               ) : (
                 <div className="flex items-center gap-3">
-                  <div className="flex min-w-0 flex-1 flex-col items-start gap-1.5">
+                  <Link
+                    href={`/categories/${category.id}`}
+                    className="-m-1.5 flex min-w-0 flex-1 flex-col items-start gap-1.5 rounded-lg p-1.5 hover:bg-muted"
+                    aria-label={`Open ${category.name}`}
+                  >
                     <CategoryBadge name={category.name} color={category.color} />
                     <StatsLine stats={stats[category.id]} />
-                  </div>
+                  </Link>
 
                   {confirmingId === category.id ? (
                     <div className="flex items-center gap-2">
